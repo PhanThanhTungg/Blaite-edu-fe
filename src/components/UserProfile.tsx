@@ -30,6 +30,7 @@ export default function UserProfile({ user }: UserProfileProps) {
 
   const updateProfileMutation = useMutation({
     mutationFn: (values: ProfileFormValues) => 
+      // TODO: Thay thế các chỗ gọi serverActions.updateUserProfile bằng API tương ứng khi đã có.
       serverActions.updateUserProfile(values.name, values.email),
     onSuccess: () => {
       message.success('Profile updated successfully!')

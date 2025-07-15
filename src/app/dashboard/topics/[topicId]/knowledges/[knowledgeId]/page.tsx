@@ -22,7 +22,7 @@ import {
   RobotOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import { serverActions } from "@/hooks/useServerActions";
+import { getKnowledgeDetail, getQuestions, createQuestion, submitAnswer, generateQuestionWithGemini } from '@/hooks/api';
 import { useEffect, useState, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -57,39 +57,37 @@ export default function KnowledgeDetailAndPracticePage() {
     error,
   } = useQuery({
     queryKey: ["knowledge", knowledgeId],
-    queryFn: () => serverActions.getKnowledge(knowledgeId),
+    queryFn: () => getKnowledgeDetail(knowledgeId),
     enabled: !!knowledgeId,
   });
 
   const { data: questions = [], isLoading: isQuestionsLoading } = useQuery({
     queryKey: ["questions", knowledgeId],
-    queryFn: () => serverActions.getQuestions(knowledgeId),
+    queryFn: () => getQuestions(knowledgeId),
     enabled: !!knowledgeId,
     initialData: [],
+  });
+
+  // Sort: chưa trả lời lên đầu, trong mỗi nhóm sort theo thời gian giảm dần
+  const sortedQuestions = [...questions].sort((a, b) => {
+    if (!a.answer && b.answer) return -1;
+    if (a.answer && !b.answer) return 1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   // Handler tạo câu hỏi luyện tập
   const handleGenerateQuestion = async () => {
     if (!knowledge) return;
     setIsGeneratingQuestion(true);
-    // Tổng hợp các câu hỏi và câu trả lời trước đó
-    const previousQuestions = questions.map((q) => `- ${q.content}`).join("\n");
-    const prompt = `Dựa trên nội dung sau và các câu hỏi đã hỏi trước đó, hãy tạo ra một câu hỏi luyện tập NGẮN GỌN, ưu tiên dạng trắc nghiệm hoặc tự luận thật ngắn, để người học có thể trả lời nhanh. Tránh lặp lại các câu hỏi đã hỏi. Nếu là trắc nghiệm, hãy kèm theo 4 đáp án (A, B, C, D) và chỉ định đáp án đúng.\n\nNội dung: ${knowledge.content}\nCác câu hỏi đã hỏi trước:\n${previousQuestions}`;
-    let questionContent = knowledge.content;
     try {
-      const geminiRes = await serverActions.generateQuestionWithGemini({
-        content: prompt,
-      });
-      if (geminiRes.question) questionContent = geminiRes.question;
+      // Gọi AI sinh câu hỏi
+      const result = await generateQuestionWithGemini({ content: knowledge.content });
+      const questionContent = result.question || knowledge.content;
+      await createQuestion({ knowledgeId, content: questionContent });
     } catch (e) {
       // fallback nếu lỗi
-      questionContent = knowledge.content;
+      await createQuestion({ knowledgeId, content: knowledge.content });
     }
-    await serverActions.createQuestion({
-      topicId: topicId,
-      knowledgeId: knowledgeId,
-      content: questionContent,
-    });
     await queryClient.invalidateQueries({
       queryKey: ["questions", knowledgeId],
     });
@@ -166,7 +164,7 @@ export default function KnowledgeDetailAndPracticePage() {
           block
           loading={isGeneratingQuestion}
           onClick={handleGenerateQuestion}
-          disabled={questions.some(q => !q.answer || q.answer.trim() === "")}
+          disabled={questions.some((q: any) => !q.answer || q.answer.trim() === "")}
         >
           Tạo câu hỏi luyện tập
         </Button>
@@ -199,7 +197,7 @@ export default function KnowledgeDetailAndPracticePage() {
           type="primary"
           loading={isGeneratingQuestion}
           onClick={handleGenerateQuestion}
-          disabled={questions.some(q => !q.answer || q.answer.trim() === "")}
+          disabled={questions.some((q: any) => !q.answer || q.answer.trim() === "")}
         >
           Tạo câu hỏi
         </Button>,
@@ -226,7 +224,7 @@ export default function KnowledgeDetailAndPracticePage() {
           </Descriptions>
         </Card>
         {/* Danh sách hỏi đáp */}
-        {questions.length === 0 ? (
+        {sortedQuestions.length === 0 ? (
           <Alert
             type="info"
             message="Chưa có câu hỏi nào cho knowledge này."
@@ -234,25 +232,20 @@ export default function KnowledgeDetailAndPracticePage() {
           />
         ) : (
           <>
-            {questions.map((q: any) => {
+            {sortedQuestions.map((q: any) => {
               const inputValue = inputValues[q.id] || "";
               const loading = loadingIds.includes(q.id);
               const handleSubmit = async () => {
                 if (!inputValue.trim()) return;
                 setLoadingIds((ids) => [...ids, q.id]);
-                // Gọi Gemini để chấm điểm và nhận xét
-                const { score, aiFeedback } =
-                  await serverActions.evaluateAnswerWithGemini({
-                    question: q.content,
-                    answer: inputValue,
-                  });
-                await serverActions.updateQuestion({
-                  questionId: q.id,
-                  content: q.content,
-                  answer: inputValue,
-                  score,
-                  aiFeedback,
-                });
+                try {
+                  const res = await submitAnswer({ questionId: q.id, answer: inputValue });
+                  setScore(res.score);
+                  setAiComment(res.aiFeedback);
+                  setShowEvaluation(true);
+                } catch (e) {
+                  // Có thể hiển thị message lỗi nếu muốn
+                }
                 setInputValues((vals) => ({ ...vals, [q.id]: "" }));
                 setLoadingIds((ids) => ids.filter((id) => id !== q.id));
                 queryClient.invalidateQueries({

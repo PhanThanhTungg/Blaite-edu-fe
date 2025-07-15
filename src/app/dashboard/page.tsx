@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
-import { serverActions } from '@/hooks/useServerActions'
+import { getUser, getTopics, getActivities } from '@/hooks/api';
 import ActivityGraph from '@/components/ActivityGraph'
 import StatsCard from '@/components/StatsCard'
 import CreateTopicModal from '@/components/CreateTopicModal'
@@ -27,20 +27,20 @@ export default function DashboardPage() {
   // Fetch user data
   const { data: user, isLoading: userLoading, error: userError } = useQuery({
     queryKey: ['user'],
-    queryFn: serverActions.getUser,
+    queryFn: getUser,
   })
 
   // Fetch topics data
   const { data: topics = [], isLoading: topicsLoading, error: topicsError } = useQuery({
     queryKey: ['topics'],
-    queryFn: serverActions.getTopics,
+    queryFn: getTopics,
   })
 
   // Fetch activities for current year
   const currentYear = new Date().getFullYear()
   const { data: activities = [], isLoading: activitiesLoading, error: activitiesError } = useQuery({
     queryKey: ['activities', currentYear],
-    queryFn: () => serverActions.getActivitiesByYear(currentYear),
+    queryFn: () => getActivities(currentYear),
   })
 
   // Check for any errors

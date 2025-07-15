@@ -2,8 +2,8 @@
 
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { serverActions } from '@/hooks/useServerActions';
 import { App } from 'antd';
+import api from '@/hooks/api';
 
 interface KnowledgeFormValues {
   content: string;
@@ -27,26 +27,13 @@ export default function KnowledgeForm({
   onCancel 
 }: KnowledgeFormProps) {
   const queryClient = useQueryClient();
-  const { message } = App.useApp()
+  const {message} = App.useApp();
 
-  const createKnowledgeMutation = useMutation({
-    mutationFn: ({ topicId, content }: { topicId: number; content: string }) => 
-      serverActions.createKnowledge(topicId, content),
-    onSuccess: () => {
-      message.success('Knowledge created successfully!');
-      queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
-      queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
-      onSuccess?.();
-    },
-    onError: (error) => {
-      message.error('Failed to create knowledge. Please try again.');
-      console.error('Error creating knowledge:', error);
-    },
-  });
+  // TODO: Thay thế các chỗ gọi serverActions.createKnowledge, serverActions.updateKnowledge bằng API tương ứng khi đã có.
 
   const updateKnowledgeMutation = useMutation({
-    mutationFn: (values: KnowledgeFormValues) => 
-      serverActions.updateKnowledge(knowledgeId!, values.content),
+    mutationFn: (values: KnowledgeFormValues) =>
+      api.put(`/api/knowledge/${knowledgeId}`, { ...values, topicId }).then(res => res.data),
     onSuccess: () => {
       message.success('Knowledge updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
@@ -59,7 +46,7 @@ export default function KnowledgeForm({
     },
   });
 
-  const isPending = createKnowledgeMutation.isPending || updateKnowledgeMutation.isPending;
+  const isPending = updateKnowledgeMutation.isPending;
 
   const columns : ProFormColumnsType<KnowledgeFormValues, "text">[] = [
     {
@@ -81,6 +68,24 @@ export default function KnowledgeForm({
       valueType: 'textarea',
     },
   ] ;
+
+  interface CreateKnowledgeInput {
+    topicId: number;
+    content: string;
+  }
+
+  const createKnowledgeMutation = useMutation({
+    mutationFn: (values: CreateKnowledgeInput) => api.post('/api/knowledge', values).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
+      queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
+      message.success('Knowledge created successfully!');
+      onSuccess?.();
+    },
+    onError: () => {
+      message.error('Failed to create knowledge.');
+    }
+  });
 
   const handleSubmit = async (values: KnowledgeFormValues) => {
     if (mode === 'create') {

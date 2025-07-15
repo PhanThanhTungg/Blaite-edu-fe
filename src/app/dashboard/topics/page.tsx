@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { serverActions } from '@/hooks/useServerActions'
+import { getTopics } from '@/hooks/api';
 import { PageContainer } from '@ant-design/pro-components'
 import { Button, Table, Tag, Spin, Alert, Popconfirm, Typography, Dropdown } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons'
@@ -30,7 +30,7 @@ export default function TopicsPage() {
 
   const { data: topics = [], isLoading, error } = useQuery({
     queryKey: ['topics'],
-    queryFn: serverActions.getTopics,
+    queryFn: getTopics,
   })
 
 

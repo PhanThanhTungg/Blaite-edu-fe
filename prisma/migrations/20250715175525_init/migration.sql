@@ -8,6 +8,8 @@ CREATE TABLE "users" (
     "updated_at" TIMESTAMP(3) NOT NULL,
     "prompt" TEXT,
     "longest_streak" INTEGER NOT NULL DEFAULT 0,
+    "streak" INTEGER DEFAULT 0,
+    "lastActiveDate" TIMESTAMP(3),
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -66,19 +68,6 @@ CREATE TABLE "activities" (
     CONSTRAINT "activities_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "streaks" (
-    "id" SERIAL NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "current" INTEGER NOT NULL,
-    "date" TIMESTAMP(3) NOT NULL,
-    "timezone" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "streaks_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "users_telegram_id_key" ON "users"("telegram_id");
 
@@ -87,9 +76,6 @@ CREATE UNIQUE INDEX "users_clerkUserId_key" ON "users"("clerkUserId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "activities_user_id_date_timezone_key" ON "activities"("user_id", "date", "timezone");
-
--- CreateIndex
-CREATE UNIQUE INDEX "streaks_user_id_date_timezone_key" ON "streaks"("user_id", "date", "timezone");
 
 -- AddForeignKey
 ALTER TABLE "topics" ADD CONSTRAINT "topics_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -105,6 +91,3 @@ ALTER TABLE "questions" ADD CONSTRAINT "questions_knowledge_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "activities" ADD CONSTRAINT "activities_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "streaks" ADD CONSTRAINT "streaks_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

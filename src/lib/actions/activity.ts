@@ -1,17 +1,15 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import prisma from '@/lib/prisma'
 import { getOrCreateUser } from '@/lib/actions'
+import { verifyTokenAndGetUserId } from '../../utils/helpers';
 
-export async function getActivities() {
+export async function getActivities(token: string) {
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      throw new Error('Unauthorized')
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkUserId: userId } })
+    const userId = await verifyTokenAndGetUserId(token);
+    if (!userId) throw new Error('User not found')
+    
+    const user = await getOrCreateUser(userId)
     if (!user) throw new Error('User not found')
     
     const activities = await prisma.activity.findMany({
@@ -30,47 +28,12 @@ export async function getActivities() {
   }
 }
 
-export async function getActivitiesByYear(year: number) {
+export async function updateActivityCount(date: Date, timezone: string, token: string) {
   try {
-    const { userId } = await auth()
-    if (!userId) {
-      throw new Error('Unauthorized')
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkUserId: userId } })
-    if (!user) throw new Error('User not found')
+    const userId = await verifyTokenAndGetUserId(token);
+    if (!userId) throw new Error('User not found')
     
-    const startDate = new Date(year, 0, 1) // January 1st
-    const endDate = new Date(year, 11, 31) // December 31st
-    
-    const activities = await prisma.activity.findMany({
-      where: {
-        userId: user.id,
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      orderBy: {
-        date: 'asc',
-      },
-    })
-
-    return activities
-  } catch (error) {
-    console.error('Error fetching activities by year:', error)
-    throw error
-  }
-}
-
-export async function updateActivityCount(date: Date, timezone: string) {
-  try {
-    const { userId } = await auth()
-    if (!userId) {
-      throw new Error('Unauthorized')
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkUserId: userId } })
+    const user = await getOrCreateUser(userId)
     if (!user) throw new Error('User not found')
     
     // Set time to midnight to ensure consistent date comparison
@@ -103,70 +66,6 @@ export async function updateActivityCount(date: Date, timezone: string) {
     return activity
   } catch (error) {
     console.error('Error updating activity count:', error)
-    throw error
-  }
-}
-
-export async function syncActivitiesFromAnswers() {
-  try {
-    const { userId } = await auth()
-    if (!userId) {
-      throw new Error('Unauthorized')
-    }
-
-    const user = await prisma.user.findUnique({ where: { clerkUserId: userId } })
-    if (!user) throw new Error('User not found')
-    
-    // Get all answers for the user
-    const answers = await prisma.answer.findMany({
-      where: {
-        userId: user.id,
-      },
-      select: {
-        createdAt: true,
-      },
-    })
-
-    // Group answers by date
-    const activityMap = new Map<string, number>()
-    
-    answers.forEach((answer: { createdAt: Date }) => {
-      const dateKey = answer.createdAt.toISOString().split('T')[0]
-      activityMap.set(dateKey, (activityMap.get(dateKey) || 0) + 1)
-    })
-
-    // Upsert activity records
-    const activities = []
-    for (const [dateKey, count] of activityMap) {
-      const date = new Date(dateKey)
-      date.setHours(0, 0, 0, 0)
-      
-      const activity = await prisma.activity.upsert({
-        where: {
-          userId_date_timezone: {
-            userId: user.id,
-            date: date,
-            timezone: user.timezone || 'UTC',
-          },
-        },
-        update: {
-          count: count,
-          updatedAt: new Date(),
-        },
-        create: {
-          userId: user.id,
-          date: date,
-          count: count,
-          timezone: user.timezone || 'UTC',
-        },
-      })
-      
-      activities.push(activity)
-    }
-
-    return activities
-  } catch (error) {
-    console.error('Error syncing activities from answers:', error)
     throw error
   }
 } 

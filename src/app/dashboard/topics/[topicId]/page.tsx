@@ -6,14 +6,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { PageContainer } from '@ant-design/pro-components'
 import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined } from '@ant-design/icons'
-import { serverActions } from '@/hooks/useServerActions'
-import EditTopicModal from '@/components/EditTopicModal'
-import DeleteTopicModal from '@/components/DeleteTopicModal'
-import CreateKnowledgeModal from '@/components/CreateKnowledgeModal'
-import EditKnowledgeModal from '@/components/EditKnowledgeModal'
-import DeleteKnowledgeModal from '@/components/DeleteKnowledgeModal'
-import KnowledgeCard from '@/components/KnowledgeCard'
 import { useState } from 'react'
+import api from '@/hooks/api';
+import EditTopicModal from '@/components/EditTopicModal';
+import KnowledgeCard from '@/components/KnowledgeCard';
+import DeleteTopicModal from '@/components/DeleteTopicModal';
+import CreateKnowledgeModal from '@/components/CreateKnowledgeModal';
+import EditKnowledgeModal from '@/components/EditKnowledgeModal';
+import DeleteKnowledgeModal from '@/components/DeleteKnowledgeModal';
 
 const { Title, Text, Paragraph } = Typography
 
@@ -38,17 +38,19 @@ export default function TopicDetailPage() {
   const [deleteKnowledgeModalOpen, setDeleteKnowledgeModalOpen] = useState(false)
   const [selectedKnowledge, setSelectedKnowledge] = useState<any>(null)
 
-  const { data: topic, isLoading, error } = useQuery({
+  const { data: topicRes, isLoading, error } = useQuery({
     queryKey: ['topic', topicId],
-    queryFn: () => serverActions.getTopic(topicId),
+    queryFn: () => api.get(`/api/topics/${topicId}`),
     enabled: !!topicId,
   })
+  const topic = topicRes?.data;
 
-  const { data: knowledges = [] } = useQuery({
+  const { data: knowledgesRes = { data: [] } } = useQuery({
     queryKey: ['topic-knowledges', topicId],
-    queryFn: () => serverActions.getTopicKnowledges(topicId),
+    queryFn: () => api.get(`/api/topics/${topicId}/knowledges`),
     enabled: !!topicId,
   })
+  const knowledges = knowledgesRes.data || [];
 
   const handleEditSuccess = () => {
     setEditModalOpen(false)

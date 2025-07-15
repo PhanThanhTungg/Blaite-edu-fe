@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Modal, Typography } from 'antd';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { serverActions } from '@/hooks/useServerActions';
-import { App } from 'antd';
+import { Modal, Typography } from "antd";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { App } from "antd";
+import api from "@/hooks/api";
 
 const { Text } = Typography;
 
@@ -15,27 +15,27 @@ interface DeleteTopicModalProps {
   onSuccess?: () => void;
 }
 
-export default function DeleteTopicModal({ 
-  open, 
-  topicId, 
-  topicName, 
-  onCancel, 
-  onSuccess 
+export default function DeleteTopicModal({
+  open,
+  topicId,
+  topicName,
+  onCancel,
+  onSuccess,
 }: DeleteTopicModalProps) {
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
+  // TODO: Thay thế các chỗ gọi serverActions.deleteTopic bằng API tương ứng khi đã có.
   const deleteTopicMutation = useMutation({
-    mutationFn: serverActions.deleteTopic,
+    mutationFn: (id: number) =>
+      api.delete(`/api/topics/${id}`).then((res) => res.data),
     onSuccess: () => {
-      message.success('Topic deleted successfully!');
-      queryClient.invalidateQueries({ queryKey: ['topics'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ["topics"] });
+      message.success("Topic deleted successfully!");
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error('Failed to delete topic. Please try again.');
-      console.error('Error deleting topic:', error);
+    onError: () => {
+      message.error("Failed to delete topic.");
     },
   });
 
@@ -59,12 +59,14 @@ export default function DeleteTopicModal({
     >
       <div style={{ marginBottom: 16 }}>
         <Text>
-          Are you sure you want to delete the topic <Text strong>"{topicName}"</Text>?
+          Are you sure you want to delete the topic{" "}
+          <Text strong>"{topicName}"</Text>?
         </Text>
       </div>
       <Text type="secondary">
-        This action cannot be undone. All knowledges, questions, and answers associated with this topic will be permanently deleted.
+        This action cannot be undone. All knowledges, questions, and answers
+        associated with this topic will be permanently deleted.
       </Text>
     </Modal>
   );
-} 
+}

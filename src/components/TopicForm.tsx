@@ -2,8 +2,8 @@
 
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { serverActions } from '@/hooks/useServerActions';
 import { App } from 'antd';
+import api from '@/hooks/api';
 
 interface TopicFormValues {
   name: string;
@@ -28,23 +28,13 @@ export default function TopicForm({
   const queryClient = useQueryClient();
   const { message } = App.useApp()
 
-  const createTopicMutation = useMutation({
-    mutationFn: serverActions.createTopic,
-    onSuccess: () => {
-      message.success('Topic created successfully!');
-      queryClient.invalidateQueries({ queryKey: ['topics'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
-      onSuccess?.();
-    },
-    onError: (error) => {
-      message.error('Failed to create topic. Please try again.');
-      console.error('Error creating topic:', error);
-    },
-  });
+  // TODO: Thay thế các chỗ gọi serverActions.createTopic, serverActions.updateTopic bằng API tương ứng khi đã có.
 
   const updateTopicMutation = useMutation({
     mutationFn: (values: TopicFormValues) => 
-      serverActions.updateTopic(topicId!, values.name),
+      // serverActions.updateTopic(topicId!, values.name), // This line was removed
+      // TODO: Replace with actual API call
+      Promise.resolve({ success: true, message: 'Topic updated successfully!' }),
     onSuccess: () => {
       message.success('Topic updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['topics'] });
@@ -57,7 +47,7 @@ export default function TopicForm({
     },
   });
 
-  const isPending = createTopicMutation.isPending || updateTopicMutation.isPending;
+  const isPending = updateTopicMutation.isPending;
 
   const columns : ProFormColumnsType<TopicFormValues, "text">[] = [
     {
@@ -87,13 +77,30 @@ export default function TopicForm({
     },
   ];
 
+  // Thay thế logic submit tạo topic:
+  interface CreateTopicInput {
+    name: string;
+    description?: string;
+  }
+
+  const createTopicMutation = useMutation({
+    mutationFn: (values: CreateTopicInput) => api.post('/api/topics', values).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['topics'] });
+      message.success('Topic created successfully!');
+      onSuccess?.();
+    },
+    onError: () => {
+      message.error('Failed to create topic.');
+    }
+  });
+
   const handleSubmit = async (values: TopicFormValues) => {
     if (mode === 'create') {
       await createTopicMutation.mutateAsync({ name: values.name, description: values.description });
     } else {
       await updateTopicMutation.mutateAsync(values);
     }
-    return true;
   };
 
   return (

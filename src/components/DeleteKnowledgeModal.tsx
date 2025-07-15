@@ -2,8 +2,8 @@
 
 import { Modal, Typography } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { serverActions } from '@/hooks/useServerActions';
 import { App } from 'antd';
+import api from '@/hooks/api';
 
 const { Text } = Typography;
 
@@ -27,18 +27,18 @@ export default function DeleteKnowledgeModal({
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
+  // TODO: Thay thế các chỗ gọi serverActions.deleteKnowledge bằng API tương ứng khi đã có.
   const deleteKnowledgeMutation = useMutation({
-    mutationFn: serverActions.deleteKnowledge,
+    mutationFn: (id: number) => api.delete(`/api/knowledge/${id}`).then(res => res.data),
     onSuccess: () => {
-      message.success('Knowledge deleted successfully!');
       queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
       queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
+      message.success('Knowledge deleted successfully!');
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error('Failed to delete knowledge. Please try again.');
-      console.error('Error deleting knowledge:', error);
-    },
+    onError: () => {
+      message.error('Failed to delete knowledge.');
+    }
   });
 
   const handleDelete = async () => {

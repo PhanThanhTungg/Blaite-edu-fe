@@ -1,29 +1,14 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
+import { verifyTokenAndGetUserId } from '../../utils/helpers';
 
 export async function getKnowledges(topicId: number) {
-  const { userId } = await auth()
   
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  // Verify topic belongs to user
   const topic = await prisma.topic.findFirst({
     where: { 
       id: topicId,
-      userId: user.id 
     }
   })
 
@@ -39,60 +24,11 @@ export async function getKnowledges(topicId: number) {
   return knowledges
 }
 
-export async function getKnowledge(knowledgeId: number) {
-  const { userId } = await auth()
-  
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  const knowledge = await prisma.knowledge.findFirst({
-    where: { 
-      id: knowledgeId,
-      topic: {
-        userId: user.id
-      }
-    },
-    include: {
-      topic: true
-    }
-  })
-
-  if (!knowledge) {
-    throw new Error('Knowledge not found')
-  }
-
-  return knowledge
-}
-
 export async function createKnowledge(topicId: number, content: string, score?: number, reviewAt?: Date) {
-  const { userId } = await auth()
   
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  // Verify topic belongs to user
   const topic = await prisma.topic.findFirst({
     where: { 
       id: topicId,
-      userId: user.id 
     }
   })
 
@@ -116,27 +52,10 @@ export async function createKnowledge(topicId: number, content: string, score?: 
 }
 
 export async function updateKnowledge(knowledgeId: number, content: string, score?: number, reviewAt?: Date) {
-  const { userId } = await auth()
   
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  // Get knowledge and verify ownership through topic
   const existingKnowledge = await prisma.knowledge.findFirst({
     where: { 
       id: knowledgeId,
-      topic: {
-        userId: user.id
-      }
     },
     include: {
       topic: true
@@ -163,27 +82,10 @@ export async function updateKnowledge(knowledgeId: number, content: string, scor
 }
 
 export async function deleteKnowledge(knowledgeId: number) {
-  const { userId } = await auth()
   
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  // Get knowledge and verify ownership through topic
   const knowledge = await prisma.knowledge.findFirst({
     where: { 
       id: knowledgeId,
-      topic: {
-        userId: user.id
-      }
     },
     include: {
       topic: true

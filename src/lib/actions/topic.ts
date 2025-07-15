@@ -1,12 +1,13 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
+import { verifyTokenAndGetUserId } from '../../utils/helpers';
 
-export async function getTopics() {
-  const { userId } = await auth()
+export async function getTopics(token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -44,9 +45,10 @@ export async function getTopics() {
   return topics
 }
 
-export async function getTopic(topicId: number) {
-  const { userId } = await auth()
+export async function getTopic(topicId: number, token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -73,9 +75,10 @@ export async function getTopic(topicId: number) {
   return topic
 }
 
-export async function getTopicKnowledges(topicId: number) {
-  const { userId } = await auth()
+export async function getTopicKnowledges(topicId: number, token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -108,9 +111,10 @@ export async function getTopicKnowledges(topicId: number) {
   return knowledges
 }
 
-export async function createTopic(name: string, description?: string) {
-  const { userId } = await auth()
+export async function createTopic(name: string, description?: string, token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -137,9 +141,10 @@ export async function createTopic(name: string, description?: string) {
   return topic
 }
 
-export async function updateTopic(topicId: number, name: string) {
-  const { userId } = await auth()
+export async function updateTopic(topicId: number, name: string, token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }
@@ -177,9 +182,10 @@ export async function updateTopic(topicId: number, name: string) {
   return topic
 }
 
-export async function deleteTopic(topicId: number) {
-  const { userId } = await auth()
+export async function deleteTopic(topicId: number, token: string) {
   
+  const userId = await verifyTokenAndGetUserId(token);
+
   if (!userId) {
     throw new Error('Unauthorized')
   }

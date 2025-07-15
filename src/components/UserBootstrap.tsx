@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect } from "react";
-import { serverActions } from "@/hooks/useServerActions";
+import { getUser } from '@/hooks/api';
 
 export default function UserBootstrap() {
   useEffect(() => {
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-    serverActions.getUser(timezone).catch(() => {});
+    getUser().catch(() => {});
   }, []);
   return null;
 } 

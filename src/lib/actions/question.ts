@@ -1,11 +1,12 @@
 'use server'
 
-import { auth } from '@clerk/nextjs/server'
 import { revalidatePath } from 'next/cache'
 import prisma from '../prisma'
+import { verifyTokenAndGetUserId } from '../../utils/helpers';
 
 export async function getQuestions(knowledgeId: number) {
-  const { userId } = await auth()
+  const token = await verifyTokenAndGetUserId();
+  const userId = token.userId;
   
   if (!userId) {
     throw new Error('Unauthorized')
@@ -35,45 +36,13 @@ export async function getQuestions(knowledgeId: number) {
 
   const questions = await prisma.question.findMany({
     where: { knowledgeId: knowledgeId },
-    orderBy: { createdAt: 'desc' }
+    orderBy: [
+      { createdAt: 'desc' },
+      { id: 'desc' }
+    ]
   })
 
   return questions
-}
-
-export async function getQuestion(questionId: number) {
-  const { userId } = await auth()
-  
-  if (!userId) {
-    throw new Error('Unauthorized')
-  }
-
-  const user = await prisma.user.findUnique({ 
-    where: { clerkUserId: userId } 
-  })
-  
-  if (!user) {
-    throw new Error('User not found')
-  }
-
-  const question = await prisma.question.findFirst({
-    where: { 
-      id: questionId,
-      topic: {
-        userId: user.id
-      }
-    },
-    include: {
-      topic: true,
-      knowledge: true
-    }
-  })
-
-  if (!question) {
-    throw new Error('Question not found')
-  }
-
-  return question
 }
 
 export async function createQuestion(
@@ -84,7 +53,8 @@ export async function createQuestion(
   score?: number,
   aiFeedback?: string,
 ) {
-  const { userId } = await auth()
+  const token = await verifyTokenAndGetUserId();
+  const userId = token.userId;
   
   if (!userId) {
     throw new Error('Unauthorized')
@@ -148,7 +118,8 @@ export async function updateQuestion(
   score?: number,
   aiFeedback?: string
 ) {
-  const { userId } = await auth();
+  const token = await verifyTokenAndGetUserId();
+  const userId = token.userId;
   if (!userId) throw new Error('Unauthorized');
 
   const user = await prisma.user.findUnique({ where: { clerkUserId: userId } });
@@ -211,7 +182,8 @@ export async function updateQuestion(
 }
 
 export async function deleteQuestion(questionId: number) {
-  const { userId } = await auth()
+  const token = await verifyTokenAndGetUserId();
+  const userId = token.userId;
   
   if (!userId) {
     throw new Error('Unauthorized')
@@ -250,7 +222,7 @@ export async function deleteQuestion(questionId: number) {
   revalidatePath(`/dashboard/topics/${question.topicId}`)
 } 
 
-export async function generateQuestionWithGemini({ content }: { content: string }) {
+export async function   generateQuestionWithGemini({ content }: { content: string }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('Missing Gemini API key');
   const prompt = `Dựa trên nội dung sau, hãy tạo ra một câu hỏi luyện tập tự luận NGẮN GỌN, súc tích, để người học có thể trả lời nhanh. Chỉ trả về nội dung câu hỏi trong thẻ <question>...</question>, không giải thích thêm.\nNội dung: ${content}`;
@@ -277,26 +249,6 @@ export async function generateQuestionWithGemini({ content }: { content: string 
   }
   return { question };
 }
-
-export async function createAnswer(questionId: number, answer: string, score?: number) {
-  const { userId } = await auth();
-  if (!userId) throw new Error('Unauthorized');
-  const user = await prisma.user.findUnique({ where: { clerkUserId: userId } });
-  if (!user) throw new Error('User not found');
-  // Kiểm tra question thuộc về user qua topic
-  const question = await prisma.question.findFirst({
-    where: { id: questionId, topic: { userId: user.id } },
-  });
-  if (!question) throw new Error('Question not found');
-  const data: any = {
-    questionId,
-    userId: user.id,
-    answer,
-  };
-  if (typeof score === 'number') data.score = score;
-  const created = await prisma.answer.create({ data });
-  return created;
-} 
 
 // Hàm evaluateAnswerWithGemini assume đã có sẵn logic gọi Gemini API ở nơi khác
 export async function evaluateAnswerWithGemini(question: string, answer: string) {
