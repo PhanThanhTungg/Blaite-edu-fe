@@ -1,0 +1,87 @@
+// This is a sample Prisma schema for astudy frontend
+// You can adjust fields/types as needed
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model User {
+    id             Int        @id @default(autoincrement()) @map("id")
+    telegramId     String?    @unique @map("telegram_id")
+    clerkUserId    String     @unique
+    timezone       String     @map("timezone") // IANA timezone, e.g. 'Asia/Ho_Chi_Minh'
+    createdAt      DateTime   @default(now()) @map("created_at")
+    updatedAt      DateTime   @updatedAt @map("updated_at")
+    prompt         String?    @map("prompt") // Prompt do người dùng định nghĩa
+    longestStreak  Int        @default(0) @map("longest_streak")
+    topics         Topic[]
+    activities     Activity[]
+    streak         Int?       @default(0)
+    lastActiveDate DateTime?
+
+    @@map("users")
+}
+
+model Topic {
+    id          Int         @id @default(autoincrement()) @map("id")
+    userId      Int         @map("user_id")
+    user        User        @relation(fields: [userId], references: [id])
+    name        String      @map("name")
+    description String?     @map("description") // Mô tả mục tiêu của topic
+    prompt      String?     @map("prompt") // Prompt do người dùng định nghĩa
+    createdAt   DateTime    @default(now()) @map("created_at")
+    updatedAt   DateTime    @updatedAt @map("updated_at")
+    knowledges  Knowledge[]
+    questions   Question[]
+
+    @@map("topics")
+}
+
+model Knowledge {
+    id        Int        @id @default(autoincrement()) @map("id")
+    topicId   Int        @map("topic_id")
+    topic     Topic      @relation(fields: [topicId], references: [id])
+    content   String     @map("content")
+    reviewAt  DateTime?  @map("review_at") // For spaced repetition scheduling
+    avgScore  Int?       @map("avg_score") // Score from 0 to 100 for spaced repetition
+    createdAt DateTime   @default(now()) @map("created_at")
+    updatedAt DateTime   @updatedAt @map("updated_at")
+    questions Question[]
+
+    @@map("knowledges")
+}
+
+model Question {
+    id          Int        @id @default(autoincrement()) @map("id")
+    topicId     Int        @map("topic_id")
+    topic       Topic      @relation(fields: [topicId], references: [id])
+    knowledgeId Int?       @map("knowledge_id")
+    knowledge   Knowledge? @relation(fields: [knowledgeId], references: [id])
+    content     String     @map("content")
+    answer      String?    @map("answer")
+    score       Int?       @map("score") // Score from 0 to 100 for spaced repetition
+    aiFeedback  String?    @map("ai_feedback")
+    createdAt   DateTime   @default(now()) @map("created_at")
+    updatedAt   DateTime   @updatedAt @map("updated_at")
+
+    @@map("questions")
+}
+
+model Activity {
+    id        Int      @id @default(autoincrement()) @map("id")
+    userId    Int      @map("user_id")
+    user      User     @relation(fields: [userId], references: [id])
+    date      DateTime @map("date") // Date of the activity (without time)
+    timezone  String   @map("timezone") // Timezone of the activity
+    count     Int      @map("count") // Number of answers on this date
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@unique([userId, date, timezone])
+    @@map("activities")
+}

@@ -1,0 +1,47 @@
+"use client";
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
+import ProLayoutWrapper from '@/components/ProLayoutWrapper';
+import { Button, Card, Typography } from 'antd';
+
+const { Title } = Typography;
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <SignedIn>
+        <ProLayoutWrapper>
+          {children}
+        </ProLayoutWrapper>
+      </SignedIn>
+      <SignedOut>
+        <div style={{ 
+          minHeight: '100vh', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+        }}>
+          <Card 
+            style={{ 
+              maxWidth: 400, 
+              width: '100%', 
+              textAlign: 'center',
+              borderRadius: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Title level={3} style={{ marginBottom: 16 }}>
+              Bạn cần đăng nhập để truy cập Dashboard
+            </Title>
+            <SignInButton mode="modal">
+              <Button type="primary" size="large">
+                Đăng nhập
+              </Button>
+            </SignInButton>
+          </Card>
+        </div>
+      </SignedOut>
+    </>
+  );
+} 
