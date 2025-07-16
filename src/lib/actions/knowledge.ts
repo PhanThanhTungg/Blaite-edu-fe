@@ -1,39 +1,41 @@
-'use server'
+"use server";
 
-import { revalidatePath } from 'next/cache'
-import prisma from '../prisma'
-import { verifyTokenAndGetUserId } from '../../utils/helpers';
+import { revalidatePath } from "next/cache";
+import prisma from "../prisma";
 
 export async function getKnowledges(topicId: number) {
-  
   const topic = await prisma.topic.findFirst({
-    where: { 
+    where: {
       id: topicId,
-    }
-  })
+    },
+  });
 
   if (!topic) {
-    throw new Error('Topic not found')
+    throw new Error("Topic not found");
   }
 
   const knowledges = await prisma.knowledge.findMany({
     where: { topicId: topicId },
-    orderBy: { createdAt: 'desc' }
-  })
+    orderBy: { createdAt: "desc" },
+  });
 
-  return knowledges
+  return knowledges;
 }
 
-export async function createKnowledge(topicId: number, content: string, score?: number, reviewAt?: Date) {
-  
+export async function createKnowledge(
+  topicId: number,
+  content: string,
+  score?: number,
+  reviewAt?: Date
+) {
   const topic = await prisma.topic.findFirst({
-    where: { 
+    where: {
       id: topicId,
-    }
-  })
+    },
+  });
 
   if (!topic) {
-    throw new Error('Topic not found')
+    throw new Error("Topic not found");
   }
 
   const knowledge = await prisma.knowledge.create({
@@ -43,27 +45,31 @@ export async function createKnowledge(topicId: number, content: string, score?: 
       ...(score !== undefined && { score }),
       ...(reviewAt !== undefined && { reviewAt }),
     },
-  })
+  });
 
-  revalidatePath('/dashboard')
-  revalidatePath(`/dashboard/topics/${topicId}`)
-  
-  return knowledge
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/topics/${topicId}`);
+
+  return knowledge;
 }
 
-export async function updateKnowledge(knowledgeId: number, content: string, score?: number, reviewAt?: Date) {
-  
+export async function updateKnowledge(
+  knowledgeId: number,
+  content: string,
+  score?: number,
+  reviewAt?: Date
+) {
   const existingKnowledge = await prisma.knowledge.findFirst({
-    where: { 
+    where: {
       id: knowledgeId,
     },
     include: {
-      topic: true
-    }
-  })
+      topic: true,
+    },
+  });
 
   if (!existingKnowledge) {
-    throw new Error('Knowledge not found')
+    throw new Error("Knowledge not found");
   }
 
   const knowledge = await prisma.knowledge.update({
@@ -73,33 +79,32 @@ export async function updateKnowledge(knowledgeId: number, content: string, scor
       ...(score !== undefined && { score }),
       ...(reviewAt !== undefined && { reviewAt }),
     },
-  })
+  });
 
-  revalidatePath('/dashboard')
-  revalidatePath(`/dashboard/topics/${existingKnowledge.topicId}`)
-  
-  return knowledge
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/topics/${existingKnowledge.topicId}`);
+
+  return knowledge;
 }
 
 export async function deleteKnowledge(knowledgeId: number) {
-  
   const knowledge = await prisma.knowledge.findFirst({
-    where: { 
+    where: {
       id: knowledgeId,
     },
     include: {
-      topic: true
-    }
-  })
+      topic: true,
+    },
+  });
 
   if (!knowledge) {
-    throw new Error('Knowledge not found')
+    throw new Error("Knowledge not found");
   }
 
   await prisma.knowledge.delete({
-    where: { id: knowledgeId }
-  })
+    where: { id: knowledgeId },
+  });
 
-  revalidatePath('/dashboard')
-  revalidatePath(`/dashboard/topics/${knowledge.topicId}`)
-} 
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/topics/${knowledge.topicId}`);
+}

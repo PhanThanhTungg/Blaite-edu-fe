@@ -1,7 +1,11 @@
-'use client';
+"use client";
 
-import { Input, Select, DatePicker, Button, Space } from 'antd';
-import { SearchOutlined, ExportOutlined, ImportOutlined } from '@ant-design/icons';
+import { Input, Select, DatePicker, Button } from "antd";
+import {
+  SearchOutlined,
+  ExportOutlined,
+  ImportOutlined,
+} from "@ant-design/icons";
 
 const { RangePicker } = DatePicker;
 
@@ -37,22 +41,24 @@ export default function SearchFilterBar({
   onExport,
   onImport,
   categoryOptions = [
-    { label: 'All Categories', value: 'all' },
-    { label: 'Programming', value: 'Programming' },
-    { label: 'Frontend', value: 'Frontend' },
-    { label: 'Backend', value: 'Backend' },
-    { label: 'Computer Science', value: 'Computer Science' },
+    { label: "All Categories", value: "all" },
+    { label: "Programming", value: "Programming" },
+    { label: "Frontend", value: "Frontend" },
+    { label: "Backend", value: "Backend" },
+    { label: "Computer Science", value: "Computer Science" },
   ],
   difficultyOptions = [
-    { label: 'All Difficulties', value: 'all' },
-    { label: 'Beginner', value: 'Beginner' },
-    { label: 'Intermediate', value: 'Intermediate' },
-    { label: 'Advanced', value: 'Advanced' },
+    { label: "All Difficulties", value: "all" },
+    { label: "Beginner", value: "Beginner" },
+    { label: "Intermediate", value: "Intermediate" },
+    { label: "Advanced", value: "Advanced" },
   ],
-  className = ""
+  className = "",
 }: SearchFilterBarProps) {
   return (
-    <div className={`flex flex-col lg:flex-row gap-4 items-start lg:items-center ${className}`}>
+    <div
+      className={`flex flex-col lg:flex-row gap-4 items-start lg:items-center ${className}`}
+    >
       <Input
         placeholder="Search..."
         prefix={<SearchOutlined />}
@@ -61,7 +67,7 @@ export default function SearchFilterBar({
         className="lg:w-80"
         allowClear
       />
-      
+
       <Select
         placeholder="Filter by category"
         value={filterCategory}
@@ -70,7 +76,7 @@ export default function SearchFilterBar({
         allowClear
         options={categoryOptions}
       />
-      
+
       <Select
         placeholder="Filter by difficulty"
         value={filterDifficulty}
@@ -79,16 +85,16 @@ export default function SearchFilterBar({
         allowClear
         options={difficultyOptions}
       />
-      
+
       {onDateRangeChange && (
         <RangePicker
-          placeholder={['Start Date', 'End Date']}
+          placeholder={["Start Date", "End Date"]}
           value={dateRange}
           onChange={onDateRangeChange}
           className="lg:w-64"
         />
       )}
-      
+
       <div className="flex gap-2">
         {showExport && onExport && (
           <Button icon={<ExportOutlined />} onClick={onExport}>
@@ -103,4 +109,4 @@ export default function SearchFilterBar({
       </div>
     </div>
   );
-} 
+}

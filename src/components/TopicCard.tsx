@@ -1,13 +1,25 @@
-'use client';
+"use client";
 
-import { Card, Typography, Tag, Space, Button, Tooltip, Descriptions, Popconfirm, Dropdown, Menu, Switch, Divider } from 'antd';
+import {
+  Card,
+  Typography,
+  Tag,
+  Button,
+  Tooltip,
+  Descriptions,
+  Dropdown,
+  Menu,
+  Switch,
+  Divider,
+} from "antd";
 import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
   SettingOutlined,
-  MoreOutlined
-} from '@ant-design/icons';
+  MoreOutlined,
+} from "@ant-design/icons";
+import { getDifficultyColor } from "@/utils/helpers";
 
 const { Text } = Typography;
 
@@ -38,43 +50,32 @@ export default function TopicCard({
   onEdit,
   onDelete,
   onStatusChange,
-  className = ""
+  className = "",
 }: TopicCardProps) {
-  const getDifficultyColor = (difficulty?: string) => {
-    switch (difficulty) {
-      case 'Beginner': return 'success';
-      case 'Intermediate': return 'processing';
-      case 'Advanced': return 'error';
-      default: return 'default';
-    }
-  };
-
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'Active': return 'success';
-      case 'Inactive': return 'default';
-      case 'Archived': return 'error';
-      default: return 'default';
-    }
-  };
-
   // Status switch handler
   const handleStatusToggle = () => {
     if (onStatusChange) {
-      onStatusChange(topic.id, topic.status === 'Active' ? 'Inactive' : 'Active')
+      onStatusChange(
+        topic.id,
+        topic.status === "Active" ? "Inactive" : "Active"
+      );
     }
-  }
+  };
 
   return (
     <Card
       className={className}
       styles={{ body: { paddingBottom: 12 } }}
-      variant='outlined'
-      style={{ borderRadius: 12, boxShadow: '0 2px 8px #f0f1f2' }}
-      title={<Text strong style={{ fontSize: 16 }}>{topic.title}</Text>}
+      variant="outlined"
+      style={{ borderRadius: 12, boxShadow: "0 2px 8px #f0f1f2" }}
+      title={
+        <Text strong style={{ fontSize: 16 }}>
+          {topic.title}
+        </Text>
+      }
       extra={
         <Switch
-          checked={topic.status === 'Active'}
+          checked={topic.status === "Active"}
           size="small"
           onChange={handleStatusToggle}
         />
@@ -85,28 +86,34 @@ export default function TopicCard({
         column={1}
         size="middle"
         style={{ marginBottom: 12, marginTop: 4 }}
-        labelStyle={{ fontWeight: 500, color: '#888' }}
-        contentStyle={{ fontWeight: 600, fontSize: 16, textAlign: 'right' }}
+        labelStyle={{ fontWeight: 500, color: "#888" }}
+        contentStyle={{ fontWeight: 600, fontSize: 16, textAlign: "right" }}
       >
         <Descriptions.Item label="Questions">
           {topic.questionsGenerated} / {topic.totalQuestions}
         </Descriptions.Item>
-        <Descriptions.Item label="Avg">
-          {topic.avgScore}%
-        </Descriptions.Item>
-        <Descriptions.Item label="Time">
-          {topic.studyTime}h
-        </Descriptions.Item>
+        <Descriptions.Item label="Avg">{topic.avgScore}%</Descriptions.Item>
+        <Descriptions.Item label="Time">{topic.studyTime}h</Descriptions.Item>
         <Descriptions.Item label="Difficulty">
-          <Tag color={getDifficultyColor(topic.difficulty)}>{topic.difficulty || 'Not Set'}</Tag>
+          <Tag color={getDifficultyColor(topic.difficulty!)}>
+            {topic.difficulty || "Not Set"}
+          </Tag>
         </Descriptions.Item>
         <Descriptions.Item label="Next Review">
-          <Text>{topic.nextReview || 'Not Set'}</Text>
+          <Text>{topic.nextReview || "Not Set"}</Text>
         </Descriptions.Item>
       </Descriptions>
 
-  
-      <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 12, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          borderTop: "1px solid #f0f0f0",
+          marginTop: 12,
+          paddingTop: 8,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Tooltip title="View Details">
           <Button
             type="text"
@@ -116,7 +123,7 @@ export default function TopicCard({
             disabled={!onView}
           />
         </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
+        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
         <Tooltip title="Edit Topic">
           <Button
             type="text"
@@ -126,7 +133,7 @@ export default function TopicCard({
             disabled={!onEdit}
           />
         </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
+        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
         <Tooltip title="Settings">
           <Button
             type="text"
@@ -136,7 +143,7 @@ export default function TopicCard({
             disabled
           />
         </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
+        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
         <Dropdown
           overlay={
             <Menu>
@@ -144,18 +151,14 @@ export default function TopicCard({
               <Menu.Item key="duplicate">Duplicate</Menu.Item>
             </Menu>
           }
-          trigger={['click']}
+          trigger={["click"]}
           placement="bottomRight"
         >
           <Tooltip title="More">
-            <Button
-              type="text"
-              icon={<MoreOutlined />}
-              size="small"
-            />
+            <Button type="text" icon={<MoreOutlined />} size="small" />
           </Tooltip>
         </Dropdown>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
+        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
         <Tooltip title="Delete Topic">
           <span>
             <Button
@@ -171,4 +174,4 @@ export default function TopicCard({
       </div>
     </Card>
   );
-} 
+}

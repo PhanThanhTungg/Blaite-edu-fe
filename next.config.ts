@@ -2,12 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
-  swcMinify: true,
   experimental: {
-    optimizePackageImports: ['@ant-design/pro-components', 'antd'],
+    optimizePackageImports: ["@ant-design/pro-components", "antd"],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 

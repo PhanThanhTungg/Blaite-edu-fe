@@ -60,7 +60,7 @@ export default function DeleteTopicModal({
       <div style={{ marginBottom: 16 }}>
         <Text>
           Are you sure you want to delete the topic{" "}
-          <Text strong>"{topicName}"</Text>?
+          <Text strong>&quot;{topicName}&quot;</Text>?
         </Text>
       </div>
       <Text type="secondary">

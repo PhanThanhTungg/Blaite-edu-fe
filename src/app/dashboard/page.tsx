@@ -1,51 +1,70 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { getUser, getTopics, getActivities } from '@/hooks/api';
-import ActivityGraph from '@/components/ActivityGraph'
-import StatsCard from '@/components/StatsCard'
-import CreateTopicModal from '@/components/CreateTopicModal'
-import EditTopicModal from '@/components/EditTopicModal'
-import DeleteTopicModal from '@/components/DeleteTopicModal'
-import { PageContainer } from '@ant-design/pro-components'
-import { Spin, Alert, Button, Card, Typography, Row, Col, Space, List, Tag } from 'antd'
-import { PlusOutlined, BookOutlined, RightOutlined } from '@ant-design/icons'
-import Link from 'next/link'
-import TopicCard from '@/components/TopicCard'
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { getUser, getTopics, getActivities } from "@/hooks/api";
+import ActivityGraph from "@/components/ActivityGraph";
+import StatsCard from "@/components/StatsCard";
+import CreateTopicModal from "@/components/CreateTopicModal";
+import EditTopicModal from "@/components/EditTopicModal";
+import DeleteTopicModal from "@/components/DeleteTopicModal";
+import { PageContainer } from "@ant-design/pro-components";
+import { Spin, Alert, Button, Card, Typography, Row, Col, Space } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import TopicCard from "@/components/TopicCard";
+import { Knowledge, Question } from '@prisma/client';
 
-const { Text, Title } = Typography
+// Định nghĩa type KnowledgeWithRelations để dùng cho các thao tác có quan hệ lồng nhau
+// (Prisma không sinh sẵn type này, nên cần mở rộng thủ công)
+type KnowledgeWithRelations = Knowledge & {
+  questions?: Question[];
+  _count?: { questions: number };
+};
+
+const { Text, Title } = Typography;
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [editModalOpen, setEditModalOpen] = useState(false)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
-  const [selectedTopic, setSelectedTopic] = useState<any>(null)
+  const router = useRouter();
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedTopic, setSelectedTopic] = useState<any>(null);
 
   // Fetch user data
-  const { data: user, isLoading: userLoading, error: userError } = useQuery({
-    queryKey: ['user'],
+  const {
+    data: user,
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery({
+    queryKey: ["user"],
     queryFn: getUser,
-  })
+  });
 
   // Fetch topics data
-  const { data: topics = [], isLoading: topicsLoading, error: topicsError } = useQuery({
-    queryKey: ['topics'],
+  const {
+    data: topics = [],
+    isLoading: topicsLoading,
+    error: topicsError,
+  } = useQuery({
+    queryKey: ["topics"],
     queryFn: getTopics,
-  })
+  });
 
   // Fetch activities for current year
-  const currentYear = new Date().getFullYear()
-  const { data: activities = [], isLoading: activitiesLoading, error: activitiesError } = useQuery({
-    queryKey: ['activities', currentYear],
-    queryFn: () => getActivities(currentYear),
-  })
+  const currentYear = new Date().getFullYear();
+  const {
+    data: activities = [],
+    isLoading: activitiesLoading,
+    error: activitiesError,
+  } = useQuery({
+    queryKey: ["activities", currentYear],
+    queryFn: () => getActivities(),
+  });
 
   // Check for any errors
-  const hasError = userError || topicsError || activitiesError
-  const isLoading = userLoading || topicsLoading || activitiesLoading
+  const hasError = userError || topicsError || activitiesError;
+  const isLoading = userLoading || topicsLoading || activitiesLoading;
 
   // Handle error state
   if (hasError) {
@@ -58,78 +77,88 @@ export default function DashboardPage() {
           showIcon
         />
       </PageContainer>
-    )
+    );
   }
 
   // Handle loading state
   if (isLoading) {
     return (
       <PageContainer title="Dashboard">
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "400px",
+          }}
+        >
           <Spin size="large" />
         </div>
       </PageContainer>
-    )
+    );
   }
 
   // Calculate learning statistics
   const calculateStats = () => {
-    const today = new Date()
-    const todayStr = today.toISOString().split('T')[0]
-    
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
     // Convert activities to map for easier lookup
-    const activityMap = new Map()
+    const activityMap = new Map();
     activities.forEach((activity: any) => {
-      const dateStr = activity.date.toISOString().split('T')[0]
-      activityMap.set(dateStr, activity.count)
-    })
+      const dateStr = activity.date.toISOString().split("T")[0];
+      activityMap.set(dateStr, activity.count);
+    });
 
     // Calculate current streak
-    let currentStreak = 0
-    let currentDate = new Date(today)
-    
+    let currentStreak = 0;
+    const currentDate = new Date(today);
+
     while (true) {
-      const dateStr = currentDate.toISOString().split('T')[0]
-      const count = activityMap.get(dateStr) || 0
-      
+      const dateStr = currentDate.toISOString().split("T")[0];
+      const count = activityMap.get(dateStr) || 0;
+
       if (count > 0) {
-        currentStreak++
-        currentDate.setDate(currentDate.getDate() - 1)
+        currentStreak++;
+        currentDate.setDate(currentDate.getDate() - 1);
       } else {
-        break
+        break;
       }
     }
 
     // Calculate longest streak
-    let longestStreak = 0
-    let tempStreak = 0
-    const sortedDates = Array.from(activityMap.keys()).sort()
-    
+    let longestStreak = 0;
+    let tempStreak = 0;
+    const sortedDates = Array.from(activityMap.keys()).sort();
+
     for (const dateStr of sortedDates) {
-      const count = activityMap.get(dateStr) || 0
+      const count = activityMap.get(dateStr) || 0;
       if (count > 0) {
-        tempStreak++
-        longestStreak = Math.max(longestStreak, tempStreak)
+        tempStreak++;
+        longestStreak = Math.max(longestStreak, tempStreak);
       } else {
-        tempStreak = 0
+        tempStreak = 0;
       }
     }
 
     // Find best day (most answers in a single day)
-    let bestDay = 0
-    let bestDayDate = ''
+    let bestDay = 0;
+    let bestDayDate = "";
     for (const [dateStr, count] of activityMap) {
       if (count > bestDay) {
-        bestDay = count
-        bestDayDate = dateStr
+        bestDay = count;
+        bestDayDate = dateStr;
       }
     }
 
     // Calculate total active days
-    const activeDays = activityMap.size
+    const activeDays = activityMap.size;
 
     // Calculate total answers
-    const totalAnswers = activities.reduce((sum: number, activity: any) => sum + activity.count, 0)
+    const totalAnswers = activities.reduce(
+      (sum: number, activity: any) => sum + activity.count,
+      0
+    );
 
     return {
       currentStreak,
@@ -137,48 +166,16 @@ export default function DashboardPage() {
       bestDay,
       bestDayDate,
       activeDays,
-      totalAnswers
-    }
-  }
+      totalAnswers,
+    };
+  };
 
-  const stats = calculateStats()
-
-  // Prepare topics data for List component
-  const topicsData = topics.map((topic) => {
-    const knowledgeCount = topic._count?.knowledges || 0
-    const questionCount = topic.knowledges?.reduce((sum, k) => sum + (k._count?.questions || 0), 0) || 0
-    
-    // Calculate average score
-    let totalScore = 0
-    let totalAnswers = 0
-    
-    topic.knowledges?.forEach(knowledge => {
-      knowledge.questions?.forEach(question => {
-        question.answers?.forEach(answer => {
-          if (answer.score !== null) {
-            totalScore += answer.score
-            totalAnswers++
-          }
-        })
-      })
-    })
-    
-    const avgScore = totalAnswers > 0 ? Math.round(totalScore / totalAnswers) : 0
-    
-    return {
-      id: topic.id,
-      name: topic.name,
-      knowledgeCount,
-      questionCount,
-      avgScore,
-      totalAnswers
-    }
-  })
+  const stats = calculateStats();
 
   return (
     <>
       <PageContainer title="Dashboard">
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* Stats Cards */}
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} lg={6}>
@@ -222,9 +219,13 @@ export default function DashboardPage() {
           {/* Best Day Info */}
           {stats.bestDay > 0 && (
             <Card size="small">
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: "center" }}>
                 <Text>
-                  🎉 Your best day was <Text strong>{new Date(stats.bestDayDate).toLocaleDateString()}</Text> with <Text strong>{stats.bestDay} answers</Text>!
+                  🎉 Your best day was{" "}
+                  <Text strong>
+                    {new Date(stats.bestDayDate).toLocaleDateString()}
+                  </Text>{" "}
+                  with <Text strong>{stats.bestDay} answers</Text>!
                 </Text>
               </div>
             </Card>
@@ -237,42 +238,71 @@ export default function DashboardPage() {
 
           {/* Topics Section */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Title level={3} style={{ margin: 0 }}>Topics</Title>
-              <Button 
-                type="primary" 
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+              }}
+            >
+              <Title level={3} style={{ margin: 0 }}>
+                Topics
+              </Title>
+              <Button
+                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setCreateModalOpen(true)}
               >
                 Create Topic
               </Button>
             </div>
-            
+
             {topics.length > 0 ? (
               <Row gutter={[16, 16]}>
-                {topics.map((topic) => (
+                {topics.map((topic: any) => (
                   <Col xs={24} sm={12} md={8} lg={6} key={topic.id}>
-                    <TopicCard 
+                    <TopicCard
                       topic={{
                         id: topic.id,
                         title: topic.name,
-                        description: '',
-                        category: '',
-                        difficulty: '',
-                        status: '',
-                        questionsGenerated: topic.knowledges?.reduce((sum, k) => sum + (k._count?.questions || 0), 0) || 0,
-                        totalQuestions: topic.knowledges?.reduce((sum, k) => sum + (k.questions?.length || 0), 0) || 0,
+                        description: "",
+                        category: "",
+                        difficulty: "",
+                        status: "",
+                        questionsGenerated:
+                          topic.knowledges?.reduce(
+                            (sum: number, k: KnowledgeWithRelations) =>
+                              sum + (k._count?.questions || 0),
+                            0
+                          ) || 0,
+                        totalQuestions:
+                          topic.knowledges?.reduce(
+                            (sum: number, k: KnowledgeWithRelations) =>
+                              sum + (k.questions?.length || 0),
+                            0
+                          ) || 0,
                         avgScore: (() => {
-                          let totalScore = 0, totalAnswers = 0;
-                          topic.knowledges?.forEach(k => k.questions?.forEach(q => q.answers?.forEach(a => {
-                            if (a.score !== null) { totalScore += a.score; totalAnswers++; }
-                          })));
-                          return totalAnswers > 0 ? Math.round(totalScore / totalAnswers) : 0;
+                          let totalScore = 0,
+                            totalAnswers = 0;
+                          topic.knowledges?.forEach((k: KnowledgeWithRelations) =>
+                            k.questions?.forEach((q) => {
+                              if (q.score !== null && q.score !== undefined) {
+                                totalScore += q.score;
+                                totalAnswers++;
+                              }
+                            })
+                          );
+                          return totalAnswers > 0
+                            ? Math.round(totalScore / totalAnswers)
+                            : 0;
                         })(),
                         studyTime: 0,
-                        nextReview: '',
+                        nextReview: "",
                       }}
-                      onView={(topic) => router.push(`/dashboard/topics/${topic.id}`)}
+                      onView={(topic) =>
+                        router.push(`/dashboard/topics/${topic.id}`)
+                      }
                       onEdit={(topic) => {
                         // Convert dashboard topic format to EditTopicModal format
                         setSelectedTopic({
@@ -280,25 +310,32 @@ export default function DashboardPage() {
                           name: topic.title,
                           createdAt: new Date(),
                           updatedAt: new Date(),
-                          userId: 0
-                        })
-                        setEditModalOpen(true)
+                          userId: 0,
+                        });
+                        setEditModalOpen(true);
                       }}
                       onDelete={(topicId) => {
                         setSelectedTopic({
                           id: topicId,
-                          name: topic.name
-                        })
-                        setDeleteModalOpen(true)
+                          name: topic.name,
+                        });
+                        setDeleteModalOpen(true);
                       }}
                     />
                   </Col>
                 ))}
               </Row>
             ) : (
-              <Card style={{ textAlign: 'center', padding: '48px 0' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
-                <Text type="secondary" style={{ fontSize: '16px', display: 'block', marginBottom: '16px' }}>
+              <Card style={{ textAlign: "center", padding: "48px 0" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📚</div>
+                <Text
+                  type="secondary"
+                  style={{
+                    fontSize: "16px",
+                    display: "block",
+                    marginBottom: "16px",
+                  }}
+                >
                   No topics yet
                 </Text>
               </Card>
@@ -319,12 +356,12 @@ export default function DashboardPage() {
         open={editModalOpen}
         topic={selectedTopic}
         onCancel={() => {
-          setEditModalOpen(false)
-          setSelectedTopic(null)
+          setEditModalOpen(false);
+          setSelectedTopic(null);
         }}
         onSuccess={() => {
-          setEditModalOpen(false)
-          setSelectedTopic(null)
+          setEditModalOpen(false);
+          setSelectedTopic(null);
         }}
       />
 
@@ -332,16 +369,16 @@ export default function DashboardPage() {
       <DeleteTopicModal
         open={deleteModalOpen}
         topicId={selectedTopic?.id || null}
-        topicName={selectedTopic?.name || ''}
+        topicName={selectedTopic?.name || ""}
         onCancel={() => {
-          setDeleteModalOpen(false)
-          setSelectedTopic(null)
+          setDeleteModalOpen(false);
+          setSelectedTopic(null);
         }}
         onSuccess={() => {
-          setDeleteModalOpen(false)
-          setSelectedTopic(null)
+          setDeleteModalOpen(false);
+          setSelectedTopic(null);
         }}
       />
     </>
-  )
-} 
+  );
+}

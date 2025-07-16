@@ -9,7 +9,7 @@ import TanstackProvider from "@/components/TanstackProvider";
 import { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App, ConfigProvider } from "antd";
-import UserBootstrap from '@/components/UserBootstrap';
+import UserBootstrap from "@/components/UserBootstrap";
 
 export const metadata: Metadata = {
   title: "AStudy - AI-Powered Learning Platform",

@@ -111,8 +111,7 @@ export async function getTopicKnowledges(topicId: number, token: string) {
   return knowledges
 }
 
-export async function createTopic(name: string, description?: string, token: string) {
-  
+export async function createTopic(name: string, token: string, description?: string) {
   const userId = await verifyTokenAndGetUserId(token);
 
   if (!userId) {
