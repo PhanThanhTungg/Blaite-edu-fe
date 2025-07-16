@@ -33,7 +33,7 @@ CREATE TABLE "knowledges" (
     "topic_id" INTEGER NOT NULL,
     "content" TEXT NOT NULL,
     "review_at" TIMESTAMP(3),
-    "avg_score" INTEGER,
+    "avg_score" INTEGER NOT NULL DEFAULT 0,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

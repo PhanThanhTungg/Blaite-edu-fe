@@ -124,7 +124,7 @@ export async function PUT(request: NextRequest) {
 
   // Lấy câu hỏi và kiểm tra quyền
   const question = await prisma.question.findFirst({
-    where: { id: questionId, topic: { userId: user.id } },
+    where: { id: questionId, knowledge: { topic: { userId: user.id } } },
   });
   if (!question)
     return NextResponse.json(
@@ -154,6 +154,19 @@ export async function PUT(request: NextRequest) {
       aiFeedback,
     },
   });
+
+  // Update knowledge avgScore: (current avgScore + new score) / 2
+  if (question.knowledgeId && typeof score === 'number') {
+    const knowledge = await prisma.knowledge.findUnique({ where: { id: question.knowledgeId } });
+    if (knowledge) {
+      const currentAvg = typeof knowledge.avgScore === 'number' ? knowledge.avgScore : 0;
+      const newAvg = Math.round((currentAvg + score) / 2);
+      await prisma.knowledge.update({
+        where: { id: question.knowledgeId },
+        data: { avgScore: newAvg },
+      });
+    }
+  }
 
   return NextResponse.json({ question: updated, score, aiFeedback, aiAnswer });
 }

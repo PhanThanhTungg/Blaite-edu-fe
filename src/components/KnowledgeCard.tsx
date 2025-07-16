@@ -7,7 +7,6 @@ import {
   DeleteOutlined,
   QuestionCircleOutlined,
   MoreOutlined,
-  ThunderboltOutlined
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation'
 
@@ -95,15 +94,6 @@ export default function KnowledgeCard({
       </Descriptions>
 
       <div style={{ borderTop: '1px solid #f0f0f0', marginTop: 12, paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Tooltip title="Luyện tập">
-          <Button
-            type="text"
-            icon={<ThunderboltOutlined />}
-            size="small"
-            onClick={() => router.push(`/dashboard/topics/${knowledge.topicId}/knowledges/${knowledge.id}/practice`)}
-          />
-        </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
         <Tooltip title="View Details">
           <Button
             type="text"
@@ -111,16 +101,6 @@ export default function KnowledgeCard({
             size="small"
             onClick={onView ? () => onView(knowledge) : undefined}
             disabled={!onView}
-          />
-        </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
-        <Tooltip title="Add Questions">
-          <Button
-            type="text"
-            icon={<QuestionCircleOutlined />}
-            size="small"
-            // onClick={() => ...}
-            disabled
           />
         </Tooltip>
         <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
@@ -133,25 +113,6 @@ export default function KnowledgeCard({
             disabled={!onEdit}
           />
         </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="duplicate">Duplicate</Menu.Item>
-              <Menu.Item key="export">Export</Menu.Item>
-            </Menu>
-          }
-          trigger={['click']}
-          placement="bottomRight"
-        >
-          <Tooltip title="More">
-            <Button
-              type="text"
-              icon={<MoreOutlined />}
-              size="small"
-            />
-          </Tooltip>
-        </Dropdown>
         <Divider type="vertical" style={{ height: 18, margin: '0 4px' }} />
         <Tooltip title="Delete Knowledge">
           <span>

@@ -24,9 +24,7 @@ import {
 } from "@ant-design/icons";
 import { getKnowledgeDetail, getQuestions, createQuestion, submitAnswer, generateQuestionWithGemini } from '@/hooks/api';
 import { useEffect, useState, useRef } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
+import SafeXmlRender from "@/components/SafeXmlRender";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -175,7 +173,16 @@ export default function KnowledgeDetailAndPracticePage() {
   // --- UI danh sách hỏi đáp ---
   return (
     <PageContainer
-      title="Luyện tập kiến thức"
+      title={
+        <div>
+          Luyện tập kiến thức
+          {typeof knowledge.avgScore === 'number' && (
+            <span style={{ fontWeight: 400, fontSize: 14, marginLeft: 12, color: '#888' }}>
+              (Điểm trung bình: {knowledge.avgScore}%)
+            </span>
+          )}
+        </div>
+      }
       breadcrumb={{
         items: [
           { path: "/", breadcrumbName: "Trang chủ" },
@@ -204,25 +211,21 @@ export default function KnowledgeDetailAndPracticePage() {
       ]}
     >
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-        {/* Block 1: Thông tin Knowledge */}
-        <Card
-          type="inner"
-          title="Nội dung Knowledge"
-          style={{ marginBottom: 24 }}
-          bodyStyle={{ fontSize: 16 }}
-        >
-          <Descriptions column={1} size="small" bordered>
-            <Descriptions.Item label="Nội dung">
-              <Typography.Paragraph style={{ fontSize: 16, marginBottom: 0 }}>
-                {knowledge.content}
-              </Typography.Paragraph>
+        {/* Block 1: Thông tin Knowledge (Descriptions, no Card) */}
+        <Descriptions column={1} size="small" bordered style={{ marginBottom: 24 }}>
+          <Descriptions.Item label="Nội dung">
+            <Typography.Paragraph style={{ fontSize: 16, marginBottom: 0 }}>
+              {knowledge.content}
+            </Typography.Paragraph>
+          </Descriptions.Item>
+          {typeof knowledge.avgScore === 'number' && (
+            <Descriptions.Item label="Điểm trung bình">
+              <span style={{ fontWeight: 400, fontSize: 14, color: '#888' }}>{knowledge.avgScore}%</span>
             </Descriptions.Item>
-            <Descriptions.Item label="ID">{knowledge.id}</Descriptions.Item>
-            <Descriptions.Item label="Ngày tạo">
-              {new Date(knowledge.createdAt).toLocaleDateString()}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
+          )}
+          <Descriptions.Item label="ID">{knowledge.id}</Descriptions.Item>
+          <Descriptions.Item label="Ngày tạo">{new Date(knowledge.createdAt).toLocaleDateString()}</Descriptions.Item>
+        </Descriptions>
         {/* Danh sách hỏi đáp */}
         {sortedQuestions.length === 0 ? (
           <Alert
@@ -260,14 +263,10 @@ export default function KnowledgeDetailAndPracticePage() {
                   key={q.id}
                   style={{ marginBottom: 32 }}
                   styles={{ body: { fontSize: 16 } }}
-                  title={
-                    <span>
-                      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                        {q.content}
-                      </ReactMarkdown>
-                    </span>
-                  }
                 >
+                  <div style={{ marginBottom: 16 }}>
+                    <SafeXmlRender xmlString={q.content} />
+                  </div>
                   {q.answer ? (
                     <>
                       <Alert
@@ -306,9 +305,7 @@ export default function KnowledgeDetailAndPracticePage() {
                           }
                           description={
                             <div style={{ marginTop: 4 }}>
-                              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
-                                {q.aiFeedback}
-                              </ReactMarkdown>
+                              <SafeXmlRender xmlString={q.aiFeedback} />
                             </div>
                           }
                           style={{ marginBottom: 12 }}

@@ -5,7 +5,7 @@ import prisma from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   const userId = await verifyTokenAndGetUserId(token!);
-  console.log({ userId})
+
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   // Lấy user nội bộ

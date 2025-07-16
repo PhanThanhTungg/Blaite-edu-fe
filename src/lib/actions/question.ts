@@ -114,7 +114,7 @@ export async function generateQuestionWithGemini({
 }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("Missing Gemini API key");
-  const prompt = `Dựa trên nội dung sau, hãy tạo ra một câu hỏi luyện tập tự luận NGẮN GỌN, súc tích, để người học có thể trả lời nhanh. Chỉ trả về nội dung câu hỏi trong thẻ <question>...</question>, không giải thích thêm.\nNội dung: ${content}`;
+  const prompt = `Dựa trên nội dung sau, hãy tạo ra một câu hỏi luyện tập tự luận NGẮN GỌN, súc tích, để người học có thể trả lời nhanh. Chỉ trả về nội dung câu hỏi trong thẻ <question>...</question>, KHÔNG markdown, chỉ dùng các thẻ HTML được Telegram hỗ trợ như <b>, <i>, <u>, <s>, <a>, <code>, <pre>, <strong>, <em>, <ins>, <del>, <span>, <br>, <p>, <ul>, <ol>, <li>, <blockquote>. Không giải thích thêm.\nNội dung: ${content}`;
   const geminiRes = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
     {
@@ -148,7 +148,7 @@ export async function evaluateAnswerWithGemini(
 ) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("Missing Gemini API key");
-  const prompt = `Câu hỏi: ${question}\nCâu trả lời của học viên: ${answer}\nBạn hãy đóng vai giáo viên, chấm điểm câu trả lời này trên thang 0-100 và nhận xét ngắn gọn, khách quan, chỉ tập trung vào kiến thức.\nTrả về kết quả trong thẻ <feedback><score>...</score><text>...</text><answer>...</answer></feedback>`;
+  const prompt = `Câu hỏi: ${question}\nCâu trả lời của học viên: ${answer}\nBạn hãy đóng vai giáo viên, chấm điểm câu trả lời này trên thang 0-100 và nhận xét ngắn gọn, khách quan, chỉ tập trung vào kiến thức. Trả về kết quả trong thẻ <feedback><score>...</score><text>...</text><answer>...</answer></feedback>. KHÔNG markdown, chỉ dùng các thẻ HTML được Telegram hỗ trợ như <b>, <i>, <u>, <s>, <a>, <code>, <pre>, <strong>, <em>, <ins>, <del>, <span>, <br>, <p>, <ul>, <ol>, <li>, <blockquote>.`;
   const geminiRes = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent",
     {

@@ -48,7 +48,7 @@ model Knowledge {
     topic     Topic      @relation(fields: [topicId], references: [id])
     content   String     @map("content")
     reviewAt  DateTime?  @map("review_at") // For spaced repetition scheduling
-    avgScore  Int?       @map("avg_score") // Score from 0 to 100 for spaced repetition
+    avgScore  Int        @default(0) @map("avg_score") // Score from 0 to 100 for spaced repetition
     createdAt DateTime   @default(now()) @map("created_at")
     updatedAt DateTime   @updatedAt @map("updated_at")
     questions Question[]
@@ -58,8 +58,7 @@ model Knowledge {
 
 model Question {
     id          Int        @id @default(autoincrement()) @map("id")
-    topicId     Int        @map("topic_id")
-    topic       Topic      @relation(fields: [topicId], references: [id])
+    messageId   String?    @map("message_id")
     knowledgeId Int?       @map("knowledge_id")
     knowledge   Knowledge? @relation(fields: [knowledgeId], references: [id])
     content     String     @map("content")
@@ -68,6 +67,8 @@ model Question {
     aiFeedback  String?    @map("ai_feedback")
     createdAt   DateTime   @default(now()) @map("created_at")
     updatedAt   DateTime   @updatedAt @map("updated_at")
+    Topic       Topic?     @relation(fields: [topicId], references: [id])
+    topicId     Int?
 
     @@map("questions")
 }

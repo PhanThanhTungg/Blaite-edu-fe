@@ -16,8 +16,6 @@ import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
-  SettingOutlined,
-  MoreOutlined,
 } from "@ant-design/icons";
 import { getDifficultyColor } from "@/utils/helpers";
 
@@ -133,31 +131,6 @@ export default function TopicCard({
             disabled={!onEdit}
           />
         </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
-        <Tooltip title="Settings">
-          <Button
-            type="text"
-            icon={<SettingOutlined />}
-            size="small"
-            // onClick={() => ...}
-            disabled
-          />
-        </Tooltip>
-        <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item key="archive">Archive</Menu.Item>
-              <Menu.Item key="duplicate">Duplicate</Menu.Item>
-            </Menu>
-          }
-          trigger={["click"]}
-          placement="bottomRight"
-        >
-          <Tooltip title="More">
-            <Button type="text" icon={<MoreOutlined />} size="small" />
-          </Tooltip>
-        </Dropdown>
         <Divider type="vertical" style={{ height: 18, margin: "0 4px" }} />
         <Tooltip title="Delete Topic">
           <span>

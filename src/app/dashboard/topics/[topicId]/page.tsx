@@ -171,7 +171,7 @@ export default function TopicDetailPage() {
                 icon={<PlusOutlined />} 
                 onClick={() => setCreateKnowledgeModalOpen(true)}
               >
-                Add Knowledges
+                Add Knowledge
               </Button>
             </div>
             
