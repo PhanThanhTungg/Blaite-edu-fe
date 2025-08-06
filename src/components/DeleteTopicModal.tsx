@@ -55,7 +55,7 @@ export default function DeleteTopicModal({
       cancelText="Cancel"
       okType="danger"
       confirmLoading={deleteTopicMutation.isPending}
-      destroyOnClose
+      destroyOnHidden
     >
       <div style={{ marginBottom: 16 }}>
         <Text>

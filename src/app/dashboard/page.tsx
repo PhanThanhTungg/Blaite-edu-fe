@@ -3,24 +3,17 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getUser, getTopics, getActivities } from "@/hooks/api";
+import { getUser, getClasses, getActivities } from "@/hooks/api";
 import ActivityGraph from "@/components/ActivityGraph";
 import StatsCard from "@/components/StatsCard";
-import CreateTopicModal from "@/components/CreateTopicModal";
-import EditTopicModal from "@/components/EditTopicModal";
-import DeleteTopicModal from "@/components/DeleteTopicModal";
+import CreateClassModal from "@/components/CreateClassModal";
+import EditClassModal from "@/components/EditClassModal";
+import DeleteClassModal from "@/components/DeleteClassModal";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import TopicCard from "@/components/TopicCard";
-import { Knowledge, Question } from '@prisma/client';
-
-// Định nghĩa type KnowledgeWithRelations để dùng cho các thao tác có quan hệ lồng nhau
-// (Prisma không sinh sẵn type này, nên cần mở rộng thủ công)
-type KnowledgeWithRelations = Knowledge & {
-  questions?: Question[];
-  _count?: { questions: number };
-};
+import ClassCard from "@/components/ClassCard";
+import ClientOnly from '@/components/ClientOnly';
 
 const { Text, Title } = Typography;
 
@@ -29,7 +22,7 @@ export default function DashboardPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<any>(null);
+  const [selectedClass, setSelectedClass] = useState<any>(null);
 
   // Fetch user data
   const {
@@ -41,14 +34,14 @@ export default function DashboardPage() {
     queryFn: getUser,
   });
 
-  // Fetch topics data
+  // Fetch classes data
   const {
-    data: topics = [],
-    isLoading: topicsLoading,
-    error: topicsError,
+    data: classes = [],
+    isLoading: classesLoading,
+    error: classesError,
   } = useQuery({
-    queryKey: ["topics"],
-    queryFn: getTopics,
+    queryKey: ["classes"],
+    queryFn: getClasses,
   });
 
   // Fetch activities for current year
@@ -63,38 +56,42 @@ export default function DashboardPage() {
   });
 
   // Check for any errors
-  const hasError = userError || topicsError || activitiesError;
-  const isLoading = userLoading || topicsLoading || activitiesLoading;
+  const hasError = userError || classesError || activitiesError;
+  const isLoading = userLoading || classesLoading || activitiesLoading;
 
   // Handle error state
   if (hasError) {
     return (
-      <PageContainer title="Dashboard">
-        <Alert
-          message="Error"
-          description="Failed to load dashboard data. Please try again."
-          type="error"
-          showIcon
-        />
-      </PageContainer>
+      <ClientOnly>
+        <PageContainer title="Dashboard">
+          <Alert
+            message="Error"
+            description="Failed to load dashboard data. Please try again."
+            type="error"
+            showIcon
+          />
+        </PageContainer>
+      </ClientOnly>
     );
   }
 
   // Handle loading state
   if (isLoading) {
     return (
-      <PageContainer title="Dashboard">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "400px",
-          }}
-        >
-          <Spin size="large" />
-        </div>
-      </PageContainer>
+      <ClientOnly>
+        <PageContainer title="Dashboard">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minHeight: "400px",
+            }}
+          >
+            <Spin size="large" />
+          </div>
+        </PageContainer>
+      </ClientOnly>
     );
   }
 
@@ -173,8 +170,8 @@ export default function DashboardPage() {
   const stats = calculateStats();
 
   return (
-    <>
-      <PageContainer title="Dashboard">
+    <ClientOnly>
+      <PageContainer title="Dashboard" style={{ marginBottom: '48px' }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* Stats Cards */}
           <Row gutter={[16, 16]}>
@@ -236,8 +233,8 @@ export default function DashboardPage() {
             <ActivityGraph activities={activities} />
           </Card>
 
-          {/* Topics Section */}
-          <div>
+          {/* Classes Section */}
+          <div style={{ marginBottom: '32px' }}>
             <div
               style={{
                 display: "flex",
@@ -247,77 +244,35 @@ export default function DashboardPage() {
               }}
             >
               <Title level={3} style={{ margin: 0 }}>
-                Topics
+                Classes
               </Title>
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setCreateModalOpen(true)}
               >
-                Create Topic
+                Create Class
               </Button>
             </div>
 
-            {topics.length > 0 ? (
+            {classes.length > 0 ? (
               <Row gutter={[16, 16]}>
-                {topics.map((topic: any) => (
-                  <Col xs={24} sm={12} md={8} lg={6} key={topic.id}>
-                    <TopicCard
-                      topic={{
-                        id: topic.id,
-                        title: topic.name,
-                        description: "",
-                        category: "",
-                        difficulty: "",
-                        status: "",
-                        questionsGenerated:
-                          topic.knowledges?.reduce(
-                            (sum: number, k: KnowledgeWithRelations) =>
-                              sum + (k._count?.questions || 0),
-                            0
-                          ) || 0,
-                        totalQuestions:
-                          topic.knowledges?.reduce(
-                            (sum: number, k: KnowledgeWithRelations) =>
-                              sum + (k.questions?.length || 0),
-                            0
-                          ) || 0,
-                        avgScore: (() => {
-                          let totalScore = 0,
-                            totalAnswers = 0;
-                          topic.knowledges?.forEach((k: KnowledgeWithRelations) =>
-                            k.questions?.forEach((q) => {
-                              if (q.score !== null && q.score !== undefined) {
-                                totalScore += q.score;
-                                totalAnswers++;
-                              }
-                            })
-                          );
-                          return totalAnswers > 0
-                            ? Math.round(totalScore / totalAnswers)
-                            : 0;
-                        })(),
-                        studyTime: 0,
-                        nextReview: "",
-                      }}
-                      onView={(topic) =>
-                        router.push(`/dashboard/topics/${topic.id}`)
+                {classes.map((classItem: any) => (
+                  <Col xs={24} sm={12} md={8} lg={6} key={classItem.id}>
+                    <ClassCard
+                      class={classItem}
+                      onView={(classItem) =>
+                        router.push(`/dashboard/classes/${classItem.id}`)
                       }
-                      onEdit={(topic) => {
-                        // Convert dashboard topic format to EditTopicModal format
-                        setSelectedTopic({
-                          id: topic.id,
-                          name: topic.title,
-                          createdAt: new Date(),
-                          updatedAt: new Date(),
-                          userId: 0,
-                        });
+                      onEdit={(classItem) => {
+                        setSelectedClass(classItem);
                         setEditModalOpen(true);
                       }}
-                      onDelete={(topicId) => {
-                        setSelectedTopic({
-                          id: topicId,
-                          name: topic.name,
+                      onDelete={(classId) => {
+                        setSelectedClass({
+                          id: classId,
+                          name: classItem.name,
+                          prompt: classItem.prompt,
                         });
                         setDeleteModalOpen(true);
                       }}
@@ -327,7 +282,7 @@ export default function DashboardPage() {
               </Row>
             ) : (
               <Card style={{ textAlign: "center", padding: "48px 0" }}>
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📚</div>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎓</div>
                 <Text
                   type="secondary"
                   style={{
@@ -336,7 +291,10 @@ export default function DashboardPage() {
                     marginBottom: "16px",
                   }}
                 >
-                  No topics yet
+                  No classes yet
+                </Text>
+                <Text type="secondary">
+                  Create your first class to start organizing your learning topics
                 </Text>
               </Card>
             )}
@@ -344,41 +302,41 @@ export default function DashboardPage() {
         </Space>
       </PageContainer>
 
-      {/* Create Topic Modal */}
-      <CreateTopicModal
+      {/* Create Class Modal */}
+      <CreateClassModal
         open={createModalOpen}
         onCancel={() => setCreateModalOpen(false)}
         onSuccess={() => setCreateModalOpen(false)}
       />
 
-      {/* Edit Topic Modal */}
-      <EditTopicModal
+      {/* Edit Class Modal */}
+      <EditClassModal
         open={editModalOpen}
-        topic={selectedTopic}
+        class={selectedClass}
         onCancel={() => {
           setEditModalOpen(false);
-          setSelectedTopic(null);
+          setSelectedClass(null);
         }}
         onSuccess={() => {
           setEditModalOpen(false);
-          setSelectedTopic(null);
+          setSelectedClass(null);
         }}
       />
 
-      {/* Delete Topic Modal */}
-      <DeleteTopicModal
+      {/* Delete Class Modal */}
+      <DeleteClassModal
         open={deleteModalOpen}
-        topicId={selectedTopic?.id || null}
-        topicName={selectedTopic?.name || ""}
+        classId={selectedClass?.id || null}
+        className={selectedClass?.name || ""}
         onCancel={() => {
           setDeleteModalOpen(false);
-          setSelectedTopic(null);
+          setSelectedClass(null);
         }}
         onSuccess={() => {
           setDeleteModalOpen(false);
-          setSelectedTopic(null);
+          setSelectedClass(null);
         }}
       />
-    </>
+    </ClientOnly>
   );
-}
+} 

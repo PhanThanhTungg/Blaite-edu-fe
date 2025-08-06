@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Button, Card, Typography, Space } from 'antd';
+import ClientOnly from '@/components/ClientOnly';
 
 const { Title, Paragraph } = Typography;
 
@@ -16,7 +17,7 @@ function RedirectToDashboard() {
 
 export default function Home() {
   return (
-    <>
+    <ClientOnly>
       <SignedIn>
         <RedirectToDashboard />
       </SignedIn>
@@ -59,6 +60,6 @@ export default function Home() {
           </Card>
         </main>
       </SignedOut>
-    </>
+    </ClientOnly>
   );
 }

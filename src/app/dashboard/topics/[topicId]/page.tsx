@@ -7,7 +7,7 @@ import { PageContainer } from '@ant-design/pro-components'
 import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined } from '@ant-design/icons'
 import { useState } from 'react'
-import api from '@/hooks/api';
+import { getTopic, getKnowledges } from '@/hooks/api';
 import EditTopicModal from '@/components/EditTopicModal';
 import KnowledgeCard from '@/components/KnowledgeCard';
 import DeleteTopicModal from '@/components/DeleteTopicModal';
@@ -18,17 +18,17 @@ import DeleteKnowledgeModal from '@/components/DeleteKnowledgeModal';
 const { Title, Text, Paragraph } = Typography
 
 interface TopicData {
-  id: number
+  id: string
   name: string
   createdAt: Date
   updatedAt: Date
-  userId: number
+  userId: string
 }
 
 export default function TopicDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const topicId = parseInt(params.topicId as string)
+  const topicId = params.topicId as string
   const queryClient = useQueryClient()
   
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -38,19 +38,17 @@ export default function TopicDetailPage() {
   const [deleteKnowledgeModalOpen, setDeleteKnowledgeModalOpen] = useState(false)
   const [selectedKnowledge, setSelectedKnowledge] = useState<any>(null)
 
-  const { data: topicRes, isLoading, error } = useQuery({
+  const { data: topic, isLoading, error } = useQuery({
     queryKey: ['topic', topicId],
-    queryFn: () => api.get(`/api/topics/${topicId}`),
+    queryFn: () => getTopic(topicId),
     enabled: !!topicId,
   })
-  const topic = topicRes?.data;
 
-  const { data: knowledgesRes = { data: [] } } = useQuery({
+  const { data: knowledges = [] } = useQuery({
     queryKey: ['topic-knowledges', topicId],
-    queryFn: () => api.get(`/api/topics/${topicId}/knowledges`),
+    queryFn: () => getKnowledges(topicId),
     enabled: !!topicId,
   })
-  const knowledges = knowledgesRes.data || [];
 
   const handleEditSuccess = () => {
     setEditModalOpen(false)
@@ -75,7 +73,7 @@ export default function TopicDetailPage() {
     setEditKnowledgeModalOpen(true)
   }
 
-  const handleDeleteKnowledge = (knowledgeId: number) => {
+  const handleDeleteKnowledge = (knowledgeId: string) => {
     const knowledge = knowledges.find((k: any) => k.id === knowledgeId)
     setSelectedKnowledge({
       id: knowledgeId,

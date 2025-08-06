@@ -23,7 +23,7 @@ export default function StatsCard({
   iconColor = "#1677ff"
 }: StatsCardProps) {
   return (
-    <Card className={className} bodyStyle={{ padding: 16 }}>
+    <Card className={className} styles={{ body: { padding: 16 } }}>
       <div className="font-medium text-gray-400 text-sm mb-3">{title}</div>
       <div className="flex justify-between items-center w-full">
         {icon && (

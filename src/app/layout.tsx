@@ -19,21 +19,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <ClerkProvider>
-      <ConfigProvider>
-        <AntdRegistry>
-          <AStudyAppProvider>
-            <TanstackProvider>
-              <html lang="en">
-                <body>
+    <html lang="en" className="">
+      <body>
+        <ClerkProvider>
+          <ConfigProvider>
+            <AntdRegistry>
+              <AStudyAppProvider>
+                <TanstackProvider>
                   <UserBootstrap />
                   <App>{children}</App>
-                </body>
-              </html>
-            </TanstackProvider>
-          </AStudyAppProvider>
-        </AntdRegistry>
-      </ConfigProvider>
-    </ClerkProvider>
+                </TanstackProvider>
+              </AStudyAppProvider>
+            </AntdRegistry>
+          </ConfigProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }

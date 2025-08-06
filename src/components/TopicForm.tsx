@@ -69,7 +69,7 @@ export default function TopicForm({
       dataIndex: 'description',
       valueType: 'textarea',
       fieldProps: {
-        placeholder: 'Enter topic description (optional)',
+        placeholder: 'Enter your goal for this topic (optional)',
         rows: 3,
         maxLength: 500,
         showCount: true,

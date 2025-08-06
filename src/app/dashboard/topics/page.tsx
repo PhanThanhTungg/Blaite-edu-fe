@@ -14,11 +14,11 @@ import DeleteTopicModal from '@/components/DeleteTopicModal'
 const { Text } = Typography
 
 interface TopicData {
-  id: number
+  id: string
   name: string
   createdAt: Date
   updatedAt: Date
-  userId: number
+  userId: string
 }
 
 export default function TopicsPage() {
@@ -30,10 +30,8 @@ export default function TopicsPage() {
 
   const { data: topics = [], isLoading, error } = useQuery({
     queryKey: ['topics'],
-    queryFn: getTopics,
+    queryFn: () => getTopics('default'), // Using default classId for now
   })
-
-
 
   const handleDeleteTopic = (topic: TopicData) => {
     setSelectedTopic(topic)

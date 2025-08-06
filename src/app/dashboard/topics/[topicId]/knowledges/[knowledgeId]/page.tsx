@@ -31,8 +31,8 @@ const { Title, Text, Paragraph } = Typography;
 export default function KnowledgeDetailAndPracticePage() {
   const params = useParams();
   const router = useRouter();
-  const topicId = parseInt(params.topicId as string);
-  const knowledgeId = parseInt(params.knowledgeId as string);
+  const topicId = params.topicId as string;
+  const knowledgeId = params.knowledgeId as string;
 
   // Practice state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -44,8 +44,8 @@ export default function KnowledgeDetailAndPracticePage() {
   const [isGeneratingQuestion, setIsGeneratingQuestion] = useState(false);
 
   // State tổng cho các block hỏi đáp
-  const [inputValues, setInputValues] = useState<Record<number, string>>({});
-  const [loadingIds, setLoadingIds] = useState<number[]>([]);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
 
   const queryClient = useQueryClient();
 
@@ -81,10 +81,10 @@ export default function KnowledgeDetailAndPracticePage() {
       // Gọi AI sinh câu hỏi
       const result = await generateQuestionWithGemini({ content: knowledge.content });
       const questionContent = result.question || knowledge.content;
-      await createQuestion({ knowledgeId, content: questionContent });
+      await createQuestion(knowledgeId, 'practice');
     } catch (e) {
       // fallback nếu lỗi
-      await createQuestion({ knowledgeId, content: knowledge.content });
+      await createQuestion(knowledgeId, 'practice');
     }
     await queryClient.invalidateQueries({
       queryKey: ["questions", knowledgeId],
@@ -242,7 +242,7 @@ export default function KnowledgeDetailAndPracticePage() {
                 if (!inputValue.trim()) return;
                 setLoadingIds((ids) => [...ids, q.id]);
                 try {
-                  const res = await submitAnswer({ questionId: q.id, answer: inputValue });
+                  const res = await submitAnswer(q.id, inputValue);
                   setScore(res.score);
                   setAiComment(res.aiFeedback);
                   setShowEvaluation(true);
@@ -360,4 +360,4 @@ export default function KnowledgeDetailAndPracticePage() {
       </div>
     </PageContainer>
   );
-}
+} 
