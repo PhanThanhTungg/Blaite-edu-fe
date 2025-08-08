@@ -190,7 +190,7 @@ export default function TopicDetailPage() {
       >
                 <Row gutter={[16, 16]}>
           {/* Knowledge Tree Section */}
-          <Col xs={24} md={12}>
+          <Col xs={24} md={8} lg={6}>
             <KnowledgeTree 
               knowledges={knowledges}
               onSelect={handleKnowledgeSelect}
@@ -198,7 +198,7 @@ export default function TopicDetailPage() {
           </Col>
 
           {/* Selected Knowledge Details */}
-          <Col xs={24} md={12}>
+          <Col xs={24} md={16} lg={18}>
             {selectedKnowledgeForTree ? (
               <Card title="Selected Knowledge Details">
                 <Descriptions column={1}>
