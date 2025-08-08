@@ -18,27 +18,28 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { getDifficultyColor } from "@/utils/helpers";
+import { useQueryClient } from "@tanstack/react-query";
+import { getTopic, getKnowledges } from "@/hooks/api";
 
 const { Text } = Typography;
 
 interface TopicCardProps {
   topic: {
-    id: number;
-    title: string;
-    description?: string;
-    category?: string;
-    difficulty?: string;
+    id: string | number;
+    name: string;
+    prompt?: string;
     status?: string;
-    questionsGenerated: number;
-    totalQuestions: number;
-    avgScore: number;
-    studyTime?: number;
-    nextReview?: string;
+    totalKnowledge?: number;
+    totalQuestion?: number;
+    avgScorePractice?: number | null;
+    avgScoreTheory?: number | null;
+    createdAt?: string;
+    updatedAt?: string;
   };
   onView?: (topic: any) => void;
   onEdit?: (topic: any) => void;
-  onDelete?: (id: number) => void;
-  onStatusChange?: (id: number, status: string) => void;
+  onDelete?: (id: string | number) => void;
+  onStatusChange?: (id: string | number, status: string) => void;
   className?: string;
 }
 
@@ -50,14 +51,36 @@ export default function TopicCard({
   onStatusChange,
   className = "",
 }: TopicCardProps) {
+  const queryClient = useQueryClient();
+
+  // Prefetch data on hover
+  const handleMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ['topic', topic.id],
+      queryFn: () => getTopic(topic.id.toString()),
+    });
+    queryClient.prefetchQuery({
+      queryKey: ['topic-knowledges', topic.id],
+      queryFn: () => getKnowledges(topic.id.toString()),
+    });
+  };
   // Status switch handler
-  const handleStatusToggle = () => {
+  const handleStatusToggle = (checked: boolean) => {
     if (onStatusChange) {
-      onStatusChange(
-        topic.id,
-        topic.status === "Active" ? "Inactive" : "Active"
-      );
+      const newStatus = checked ? "active" : "inactive";
+      console.log('🔍 Toggling topic status:', topic.id, 'from', topic.status, 'to', newStatus);
+      onStatusChange(topic.id, newStatus);
     }
+  };
+
+  // Calculate average score
+  const getAverageScore = () => {
+    const practice = topic.avgScorePractice || 0;
+    const theory = topic.avgScoreTheory || 0;
+    if (practice === 0 && theory === 0) return 0;
+    if (practice === 0) return theory;
+    if (theory === 0) return practice;
+    return Math.round((practice + theory) / 2);
   };
 
   return (
@@ -66,14 +89,15 @@ export default function TopicCard({
       styles={{ body: { paddingBottom: 12 } }}
       variant="outlined"
       style={{ borderRadius: 12, boxShadow: "0 2px 8px #f0f1f2" }}
+      onMouseEnter={handleMouseEnter}
       title={
         <Text strong style={{ fontSize: 16 }}>
-          {topic.title}
+          {topic.name}
         </Text>
       }
       extra={
         <Switch
-          checked={topic.status === "Active"}
+          checked={topic.status === "active"}
           size="small"
           onChange={handleStatusToggle}
         />
@@ -84,21 +108,33 @@ export default function TopicCard({
         column={1}
         size="middle"
         style={{ marginBottom: 12, marginTop: 4 }}
-        labelStyle={{ fontWeight: 500, color: "#888" }}
-        contentStyle={{ fontWeight: 600, fontSize: 16, textAlign: "right" }}
+        styles={{
+          label: { fontWeight: 500, color: "#888" },
+          content: { fontWeight: 600, fontSize: 16, textAlign: "right" }
+        }}
       >
-        <Descriptions.Item label="Questions">
-          {topic.questionsGenerated} / {topic.totalQuestions}
+        <Descriptions.Item label="Knowledge">
+          {topic.totalKnowledge || 0}
         </Descriptions.Item>
-        <Descriptions.Item label="Avg">{topic.avgScore}%</Descriptions.Item>
-        <Descriptions.Item label="Time">{topic.studyTime}h</Descriptions.Item>
-        <Descriptions.Item label="Difficulty">
-          <Tag color={getDifficultyColor(topic.difficulty!)}>
-            {topic.difficulty || "Not Set"}
+        <Descriptions.Item label="Questions">
+          {topic.totalQuestion || 0}
+        </Descriptions.Item>
+        <Descriptions.Item label="Practice Score">
+          {topic.avgScorePractice ? `${topic.avgScorePractice}%` : "0%"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Theory Score">
+          {topic.avgScoreTheory ? `${topic.avgScoreTheory}%` : "0%"}
+        </Descriptions.Item>
+        <Descriptions.Item label="Avg Score">
+          {getAverageScore()}%
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Tag color={topic.status === "active" ? "green" : "red"}>
+            {topic.status === "active" ? "Active" : "Inactive"}
           </Tag>
         </Descriptions.Item>
-        <Descriptions.Item label="Next Review">
-          <Text>{topic.nextReview || "Not Set"}</Text>
+        <Descriptions.Item label="Created">
+          <Text>{topic.createdAt ? new Date(topic.createdAt).toLocaleDateString() : "N/A"}</Text>
         </Descriptions.Item>
       </Descriptions>
 

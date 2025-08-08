@@ -14,19 +14,22 @@ const { Text } = Typography;
 
 interface KnowledgeCardProps {
   knowledge: {
-    id: number;
-    content: string;
-    createdAt: Date;
-    updatedAt: Date;
-    topicId: number;
+    id: string | number;
+    name?: string;
+    prompt?: string;
+    content?: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    topicId: string | number;
+    status?: string;
     questionsCount?: number;
     answersCount?: number;
     avgScore?: number;
   };
   onView?: (knowledge: any) => void;
   onEdit?: (knowledge: any) => void;
-  onDelete?: (id: number) => void;
-  onStatusChange?: (id: number, status: string) => void;
+  onDelete?: (id: string | number) => void;
+  onStatusChange?: (id: string | number, status: string) => void;
   className?: string;
 }
 
@@ -40,9 +43,10 @@ export default function KnowledgeCard({
 }: KnowledgeCardProps) {
   const router = useRouter();
   // Truncate content for display
-  const truncatedContent = knowledge.content.length > 100 
-    ? knowledge.content.substring(0, 100) + '...' 
-    : knowledge.content;
+  const displayContent = knowledge.name || knowledge.prompt || knowledge.content || '';
+  const truncatedContent = displayContent.length > 100 
+    ? displayContent.substring(0, 100) + '...' 
+    : displayContent;
 
   // Status switch handler
   const handleStatusToggle = () => {
@@ -57,7 +61,7 @@ export default function KnowledgeCard({
       styles={{ body: { paddingBottom: 12 } }}
       variant='outlined'
       style={{ borderRadius: 12, boxShadow: '0 2px 8px #f0f1f2' }}
-      title={<Text strong style={{ fontSize: 16 }}>Knowledge #{knowledge.id}</Text>}
+      title={<Text strong style={{ fontSize: 16 }}>{knowledge.name || `Knowledge #${knowledge.id}`}</Text>}
       extra={
         <Switch
           checked={true}
@@ -76,8 +80,10 @@ export default function KnowledgeCard({
         column={1}
         size="middle"
         style={{ marginBottom: 12, marginTop: 4 }}
-        labelStyle={{ fontWeight: 500, color: '#888' }}
-        contentStyle={{ fontWeight: 600, fontSize: 16, textAlign: 'right' }}
+        styles={{
+          label: { fontWeight: 500, color: '#888' },
+          content: { fontWeight: 600, fontSize: 16, textAlign: 'right' }
+        }}
       >
         <Descriptions.Item label="Questions">
           {knowledge.questionsCount || 0}
@@ -90,6 +96,11 @@ export default function KnowledgeCard({
         </Descriptions.Item>
         <Descriptions.Item label="Created">
           <Text>{new Date(knowledge.createdAt).toLocaleDateString()}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="Status">
+          <Tag color={knowledge.status === "active" ? "green" : "red"}>
+            {knowledge.status === "active" ? "Active" : "Inactive"}
+          </Tag>
         </Descriptions.Item>
       </Descriptions>
 

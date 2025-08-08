@@ -4,11 +4,13 @@ import { Modal } from 'antd';
 import KnowledgeForm from './KnowledgeForm';
 
 interface KnowledgeData {
-  id: number;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  topicId: number;
+  id: string | number;
+  name?: string;
+  prompt?: string;
+  content?: string;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  topicId: string | number;
 }
 
 interface EditKnowledgeModalProps {
@@ -35,7 +37,7 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
       footer={null}
       maskClosable={true}
       closable={true}
-      destroyOnClose
+      destroyOnHidden
       width={600}
     >
       <KnowledgeForm
@@ -43,7 +45,7 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
         topicId={knowledge.topicId}
         knowledgeId={knowledge.id}
         initialValues={{
-          content: knowledge.content,
+          content: knowledge.content || knowledge.prompt || '',
         }}
         onSuccess={onSuccess}
         onCancel={handleCancel}

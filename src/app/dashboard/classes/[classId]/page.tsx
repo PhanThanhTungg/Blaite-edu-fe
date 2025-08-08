@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
-import { getClass, getTopics, getUser } from "@/hooks/api";
+import { getClass, getTopics, getUser, updateTopicStatus, getTopic, getKnowledges } from "@/hooks/api";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb } from "antd";
 import { PlusOutlined, HomeOutlined } from "@ant-design/icons";
@@ -19,11 +19,55 @@ export default function ClassDetailPage() {
   const router = useRouter();
   const params = useParams();
   const classId = params.classId as string;
+  const queryClient = useQueryClient();
   
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<any>(null);
+
+  // Status update mutation with optimistic updates
+  const statusUpdateMutation = useMutation({
+    mutationFn: ({ topicId, status }: { topicId: string; status: string }) => {
+      console.log('🔍 Updating topic status:', topicId, 'to', status);
+      return updateTopicStatus(topicId, status);
+    },
+    onMutate: async ({ topicId, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['topics', classId] });
+      
+      // Snapshot the previous value
+      const previousTopics = queryClient.getQueryData(['topics', classId]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(['topics', classId], (old: any) => {
+        if (!old) return old;
+        return old.map((topic: any) => 
+          topic.id === topicId ? { ...topic, status } : topic
+        );
+      });
+      
+      // Return a context object with the snapshotted value
+      return { previousTopics };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousTopics) {
+        queryClient.setQueryData(['topics', classId], context.previousTopics);
+      }
+      console.error('Error updating topic status:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['topics', classId] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+    },
+  });
+
+  // Handle status change
+  const handleStatusChange = (topicId: string | number, status: string) => {
+    statusUpdateMutation.mutate({ topicId: topicId.toString(), status });
+  };
 
   // Fetch class data
   const {
@@ -134,7 +178,7 @@ export default function ClassDetailPage() {
                 <Col xs={12} sm={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1677ff' }}>
-                      {topics.length}
+                       {classData.totalTopic || 0}
                     </div>
                     <Text type="secondary">Topics</Text>
                   </div>
@@ -142,7 +186,7 @@ export default function ClassDetailPage() {
                 <Col xs={12} sm={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
-                      {topics.reduce((sum: number, topic: any) => sum + (topic.knowledges?.length || 0), 0)}
+                       {classData.totalKnowledge || 0}
                     </div>
                     <Text type="secondary">Knowledges</Text>
                   </div>
@@ -150,9 +194,7 @@ export default function ClassDetailPage() {
                 <Col xs={12} sm={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>
-                      {topics.reduce((sum: number, topic: any) => 
-                        sum + topic.knowledges?.reduce((kSum: number, k: any) => kSum + (k.questions?.length || 0), 0) || 0, 0
-                      )}
+                       {classData.totalQuestion || 0}
                     </div>
                     <Text type="secondary">Questions</Text>
                   </div>
@@ -206,45 +248,34 @@ export default function ClassDetailPage() {
                     <TopicCard
                       topic={{
                         id: topic.id,
-                        title: topic.name,
-                        description: topic.description || "",
-                        category: "",
-                        difficulty: "",
-                        status: "",
-                        questionsGenerated: topic.knowledges?.reduce(
-                          (sum: number, k: any) => sum + (k._count?.questions || 0),
-                          0
-                        ) || 0,
-                        totalQuestions: topic.knowledges?.reduce(
-                          (sum: number, k: any) => sum + (k.questions?.length || 0),
-                          0
-                        ) || 0,
-                        avgScore: (() => {
-                          let totalScore = 0,
-                            totalAnswers = 0;
-                          topic.knowledges?.forEach((k: any) =>
-                            k.questions?.forEach((q: any) => {
-                              if (q.score !== null && q.score !== undefined) {
-                                totalScore += q.score;
-                                totalAnswers++;
-                              }
-                            })
-                          );
-                          return totalAnswers > 0
-                            ? Math.round(totalScore / totalAnswers)
-                            : 0;
-                        })(),
-                        studyTime: 0,
-                        nextReview: "",
+                         name: topic.name,
+                         prompt: topic.prompt,
+                         status: topic.status,
+                         totalKnowledge: topic.totalKnowledge,
+                         totalQuestion: topic.totalQuestion,
+                         avgScorePractice: topic.avgScorePractice,
+                         avgScoreTheory: topic.avgScoreTheory,
+                         createdAt: topic.createdAt,
+                         updatedAt: topic.updatedAt,
                       }}
-                      onView={(topic) =>
-                        router.push(`/dashboard/classes/${classId}/topics/${topic.id}`)
-                      }
+                      onView={(topic) => {
+                        // Prefetch data before navigation
+                        queryClient.prefetchQuery({
+                          queryKey: ['topic', topic.id],
+                          queryFn: () => getTopic(topic.id),
+                        });
+                        queryClient.prefetchQuery({
+                          queryKey: ['topic-knowledges', topic.id],
+                          queryFn: () => getKnowledges(topic.id),
+                        });
+                        // Navigate immediately
+                        router.push(`/dashboard/topics/${topic.id}`);
+                      }}
                       onEdit={(topic) => {
                         setSelectedTopic({
                           id: topic.id,
-                          name: topic.title,
-                          description: topic.description,
+                           name: topic.name,
+                           description: topic.prompt,
                         });
                         setEditModalOpen(true);
                       }}
@@ -255,6 +286,7 @@ export default function ClassDetailPage() {
                         });
                         setDeleteModalOpen(true);
                       }}
+                       onStatusChange={handleStatusChange}
                     />
                   </Col>
                 ))}
@@ -284,6 +316,7 @@ export default function ClassDetailPage() {
       {/* Create Topic Modal */}
       <CreateTopicModal
         open={createModalOpen}
+        classId={classId}
         onCancel={() => setCreateModalOpen(false)}
         onSuccess={() => setCreateModalOpen(false)}
       />

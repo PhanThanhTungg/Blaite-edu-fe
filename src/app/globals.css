@@ -1,3 +1,9 @@
 @import "tailwindcss";
 
 /* Custom styles can go here */
+
+/* Tree search highlight */
+.site-tree-search-value {
+  color: #f50;
+  font-weight: bold;
+}

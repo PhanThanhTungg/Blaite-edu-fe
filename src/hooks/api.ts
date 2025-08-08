@@ -107,6 +107,11 @@ export async function editTopic(topicId: string, name: string, prompt?: string) 
   return res.data;
 }
 
+export async function updateTopicStatus(topicId: string, status: string) {
+  const res = await api.patch(`/topics/${topicId}/status`, { status });
+  return res.data;
+}
+
 export async function deleteTopic(topicId: string) {
   const res = await api.delete(`/topics/${topicId}`);
   return res.data;
@@ -125,6 +130,11 @@ export async function getKnowledgeDetail(knowledgeId: string) {
 
 export async function createKnowledge(topicId: string, content: string) {
   const res = await api.post('/knowledges', { topicId, content });
+  return res.data;
+}
+
+export async function generateKnowledge(topicId: string, maxTokens: number = 1000, temperature: number = 0.5) {
+  const res = await api.post(`/knowledges/topic/${topicId}/generate?maxTokens=${maxTokens}&temperature=${temperature}`);
   return res.data;
 }
 

@@ -3,15 +3,15 @@
 import { Modal, Typography } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
-import api from "@/hooks/api";
+import { deleteKnowledge } from "@/hooks/api";
 
 const { Text } = Typography;
 
 interface DeleteKnowledgeModalProps {
   open: boolean;
-  knowledgeId: number | null;
+  knowledgeId: string | number | null;
   knowledgeContent: string;
-  topicId: number;
+  topicId: string;
   onCancel: () => void;
   onSuccess?: () => void;
 }
@@ -27,10 +27,8 @@ export default function DeleteKnowledgeModal({
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
-  // TODO: Thay thế các chỗ gọi serverActions.deleteKnowledge bằng API tương ứng khi đã có.
   const deleteKnowledgeMutation = useMutation({
-    mutationFn: (id: number) =>
-      api.delete(`/api/knowledge/${id}`).then((res) => res.data),
+    mutationFn: (id: string | number) => deleteKnowledge(id.toString()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["knowledges", topicId] });
       queryClient.invalidateQueries({

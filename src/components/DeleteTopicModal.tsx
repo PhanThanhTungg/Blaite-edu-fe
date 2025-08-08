@@ -9,7 +9,7 @@ const { Text } = Typography;
 
 interface DeleteTopicModalProps {
   open: boolean;
-  topicId: number | null;
+  topicId: string | number | null;
   topicName: string;
   onCancel: () => void;
   onSuccess?: () => void;
@@ -25,21 +25,28 @@ export default function DeleteTopicModal({
   const queryClient = useQueryClient();
   const { message } = App.useApp();
 
-  // TODO: Thay thế các chỗ gọi serverActions.deleteTopic bằng API tương ứng khi đã có.
   const deleteTopicMutation = useMutation({
-    mutationFn: (id: number) =>
-      api.delete(`/api/topics/${id}`).then((res) => res.data),
+    mutationFn: (id: string | number) => {
+      console.log('🔍 Deleting topic with ID:', id);
+      return api.delete(`/topics/${id}`).then((res) => {
+        console.log('🔍 Delete response:', res.data);
+        return res.data;
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["topics"] });
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
       message.success("Topic deleted successfully!");
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error) => {
       message.error("Failed to delete topic.");
+      console.error('Error deleting topic:', error);
     },
   });
 
   const handleDelete = async () => {
+    console.log('🔍 Handle delete called with topicId:', topicId);
     if (topicId) {
       await deleteTopicMutation.mutateAsync(topicId);
     }

@@ -1,14 +1,17 @@
 'use client';
 
-import { Modal } from 'antd';
+import { Modal, Spin } from 'antd';
+import { useQuery } from '@tanstack/react-query';
 import TopicForm from './TopicForm';
+import { getTopic } from '@/hooks/api';
 
 interface TopicData {
-  id: number;
+  id: string | number;
   name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  userId: number;
+  prompt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  userId?: number;
 }
 
 interface EditTopicModalProps {
@@ -23,8 +26,55 @@ export default function EditTopicModal({ open, topic, onCancel, onSuccess }: Edi
     onCancel();
   };
 
+  // Fetch topic details when modal opens
+  const {
+    data: topicData,
+    isLoading,
+    error
+  } = useQuery({
+    queryKey: ['topic', topic?.id],
+    queryFn: () => getTopic(topic?.id as string),
+    enabled: open && !!topic?.id,
+  });
+
   if (!topic) {
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <Modal
+        title="Edit Topic"
+        open={open}
+        onCancel={handleCancel}
+        footer={null}
+        maskClosable={true}
+        closable={true}
+        destroyOnHidden
+      >
+        <div style={{ textAlign: 'center', padding: '20px' }}>
+          <Spin size="large" />
+        </div>
+      </Modal>
+    );
+  }
+
+  if (error) {
+    return (
+      <Modal
+        title="Edit Topic"
+        open={open}
+        onCancel={handleCancel}
+        footer={null}
+        maskClosable={true}
+        closable={true}
+        destroyOnHidden
+      >
+        <div style={{ textAlign: 'center', padding: '20px', color: 'red' }}>
+          Failed to load topic data. Please try again.
+        </div>
+      </Modal>
+    );
   }
 
   return (
@@ -41,7 +91,8 @@ export default function EditTopicModal({ open, topic, onCancel, onSuccess }: Edi
         mode="edit"
         topicId={topic.id}
         initialValues={{
-          name: topic.name,
+          name: topicData?.name || topic.name,
+          description: topicData?.prompt || '',
         }}
         onSuccess={onSuccess}
         onCancel={handleCancel}

@@ -13,7 +13,8 @@ interface TopicFormValues {
 interface TopicFormProps {
   mode: 'create' | 'edit';
   initialValues?: TopicFormValues;
-  topicId?: number;
+  topicId?: string | number;
+  classId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -22,6 +23,7 @@ export default function TopicForm({
   mode, 
   initialValues, 
   topicId, 
+  classId,
   onSuccess, 
   onCancel 
 }: TopicFormProps) {
@@ -31,14 +33,29 @@ export default function TopicForm({
   // TODO: Thay thế các chỗ gọi serverActions.createTopic, serverActions.updateTopic bằng API tương ứng khi đã có.
 
   const updateTopicMutation = useMutation({
-    mutationFn: (values: TopicFormValues) => 
-      // serverActions.updateTopic(topicId!, values.name), // This line was removed
-      // TODO: Replace with actual API call
-      Promise.resolve({ success: true, message: 'Topic updated successfully!' }),
+    mutationFn: (values: TopicFormValues) => {
+      if (!topicId) {
+        throw new Error('Topic ID is required');
+      }
+      console.log('🔍 Updating topic with ID:', topicId);
+      console.log('🔍 Update values:', values);
+      
+      const updateData = {
+        name: values.name,
+        prompt: values.description || ''
+      };
+      
+      console.log('🔍 API update data:', updateData);
+      return api.patch(`/topics/${topicId}`, updateData).then(res => {
+        console.log('🔍 Update response:', res.data);
+        return res.data;
+      });
+    },
     onSuccess: () => {
-      message.success('Topic updated successfully!');
       queryClient.invalidateQueries({ queryKey: ['topics'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+      queryClient.invalidateQueries({ queryKey: ['topic'] });
+      message.success('Topic updated successfully!');
       onSuccess?.();
     },
     onError: (error) => {
@@ -65,11 +82,11 @@ export default function TopicForm({
       },
     },
     {
-      title: 'Description',
+      title: 'Prompt',
       dataIndex: 'description',
       valueType: 'textarea',
       fieldProps: {
-        placeholder: 'Enter your goal for this topic (optional)',
+        placeholder: 'Enter your learning goal and preferences for this topic (optional)',
         rows: 3,
         maxLength: 500,
         showCount: true,
@@ -80,24 +97,53 @@ export default function TopicForm({
   // Thay thế logic submit tạo topic:
   interface CreateTopicInput {
     name: string;
+    prompt?: string;
     description?: string;
   }
 
   const createTopicMutation = useMutation({
-    mutationFn: (values: CreateTopicInput) => api.post('/api/topics', values).then(res => res.data),
+    mutationFn: (values: CreateTopicInput) => {
+      if (!classId) {
+        throw new Error('Class ID is required');
+      }
+      console.log('🔍 Mutation values:', values);
+      console.log('🔍 Values description:', values.description);
+      
+      const requestData = {
+        name: values.name,
+        prompt: values.description || ''
+      };
+      console.log('🔍 API request data:', requestData);
+      console.log('🔍 API endpoint:', `/topics/class/${classId}`);
+      return api.post(`/topics/class/${classId}`, requestData).then(res => {
+        console.log('🔍 API response:', res.data);
+        return res.data;
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['topics'] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
       message.success('Topic created successfully!');
       onSuccess?.();
     },
-    onError: () => {
+    onError: (error) => {
       message.error('Failed to create topic.');
+      console.error('Error creating topic:', error);
     }
   });
 
   const handleSubmit = async (values: TopicFormValues) => {
+    console.log('🔍 Form values:', values);
+    console.log('🔍 Description value:', values.description);
+    console.log('🔍 Description type:', typeof values.description);
+    
     if (mode === 'create') {
-      await createTopicMutation.mutateAsync({ name: values.name, description: values.description });
+      const createData = { 
+        name: values.name, 
+        description: values.description || '' 
+      };
+      console.log('🔍 Create data being sent:', createData);
+      await createTopicMutation.mutateAsync(createData);
     } else {
       await updateTopicMutation.mutateAsync(values);
     }

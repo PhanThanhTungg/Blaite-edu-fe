@@ -5,7 +5,7 @@ import KnowledgeForm from './KnowledgeForm';
 
 interface CreateKnowledgeModalProps {
   open: boolean;
-  topicId: number;
+  topicId: string | number;
   onCancel: () => void;
   onSuccess?: () => void;
 }
@@ -23,7 +23,7 @@ export default function CreateKnowledgeModal({ open, topicId, onCancel, onSucces
       footer={null}
       maskClosable={true}
       closable={true}
-      destroyOnClose
+      destroyOnHidden
       width={600}
     >
       <KnowledgeForm
