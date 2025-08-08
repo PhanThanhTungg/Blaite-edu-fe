@@ -196,28 +196,38 @@ export default function DashboardPage() {
 
             {classes.length > 0 ? (
               <Row gutter={[16, 16]}>
-                {classes.map((classItem: any) => (
-                  <Col xs={24} sm={12} md={8} lg={6} key={classItem.id}>
-                    <ClassCard
-                      class={classItem}
-                      onView={(classItem) =>
-                        router.push(`/dashboard/classes/${classItem.id}`)
-                      }
-                      onEdit={(classItem) => {
-                        setSelectedClass(classItem);
-                        setEditModalOpen(true);
-                      }}
-                      onDelete={(classId) => {
-                        setSelectedClass({
-                          id: classId,
-                          name: classItem.name,
-                          prompt: classItem.prompt,
-                        });
-                        setDeleteModalOpen(true);
-                      }}
-                    />
-                  </Col>
-                ))}
+                {classes.map((classItem: any) => {
+                  // Map API response fields to component expected properties
+                  const mappedClass = {
+                    ...classItem,
+                    topicsCount: classItem.totalTopic || 0,
+                    knowledgesCount: classItem.totalKnowledge || 0,
+                    questionsCount: classItem.totalQuestion || 0,
+                  };
+                  
+                  return (
+                    <Col xs={24} sm={12} md={8} lg={6} key={classItem.id}>
+                      <ClassCard
+                        class={mappedClass}
+                        onView={(classItem) =>
+                          router.push(`/dashboard/classes/${classItem.id}`)
+                        }
+                        onEdit={(classItem) => {
+                          setSelectedClass(classItem);
+                          setEditModalOpen(true);
+                        }}
+                        onDelete={(classId) => {
+                          setSelectedClass({
+                            id: classId,
+                            name: classItem.name,
+                            prompt: classItem.prompt,
+                          });
+                          setDeleteModalOpen(true);
+                        }}
+                      />
+                    </Col>
+                  );
+                })}
               </Row>
             ) : (
               <Card style={{ textAlign: "center", padding: "48px 0" }}>
