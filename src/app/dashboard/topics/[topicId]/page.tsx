@@ -177,36 +177,19 @@ export default function TopicDetailPage() {
         }}
         extra={[
           <Button 
-            key="edit" 
-            icon={<EditOutlined />}
-            onClick={() => setEditModalOpen(true)}
+            key="generate" 
+            type="primary"
+            icon={<PlusOutlined />} 
+            onClick={handleGenerateKnowledge}
+            loading={isGenerating}
+            size="large"
           >
-            Edit
+            Generate Knowledge
           </Button>
         ]}
       >
-        <Row gutter={[16, 16]}>
-          {/* Topic Information */}
-          <Col xs={24}>
-            <Card title="Topic Information">
-              <Descriptions column={1}>
-                <Descriptions.Item label="Name">
-                  <Text strong>{topic.name}</Text>
-                </Descriptions.Item>
-                <Descriptions.Item label="Status">
-                  <Tag color="green">Active</Tag>
-                </Descriptions.Item>
-                <Descriptions.Item label="Created">
-                  {new Date(topic.createdAt).toLocaleDateString()}
-                </Descriptions.Item>
-                <Descriptions.Item label="Last Updated">
-                  {new Date(topic.updatedAt).toLocaleDateString()}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-          </Col>
-
-                    {/* Knowledge Tree Section */}
+                <Row gutter={[16, 16]}>
+          {/* Knowledge Tree Section */}
           <Col xs={24} md={12}>
             <KnowledgeTree 
               knowledges={knowledges}
@@ -241,55 +224,6 @@ export default function TopicDetailPage() {
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
                   <Text type="secondary">Select a knowledge from the tree to view details</Text>
                 </div>
-              </Card>
-            )}
-          </Col>
-
-          {/* Knowledges Grid Section */}
-          <Col xs={24}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text strong style={{ fontSize: 18 }}>All Knowledges</Text>
-              <Button 
-                type="primary" 
-                icon={<PlusOutlined />} 
-                onClick={handleGenerateKnowledge}
-                loading={isGenerating}
-              >
-                Generate Knowledge
-              </Button>
-            </div>
-            
-            {knowledges.length > 0 ? (
-              <Row gutter={[16, 16]}>
-                {knowledges.map((knowledge: any) => (
-                  <Col xs={24} sm={12} md={8} lg={6} key={knowledge.id}>
-                    <KnowledgeCard 
-                      knowledge={{
-                        id: knowledge.id,
-                         name: knowledge.name,
-                         prompt: knowledge.prompt,
-                        content: knowledge.content,
-                        createdAt: knowledge.createdAt,
-                        updatedAt: knowledge.updatedAt,
-                        topicId: knowledge.topicId,
-                         status: knowledge.status,
-                        questionsCount: 0,
-                        answersCount: 0,
-                        avgScore: 0,
-                      }}
-                      onView={(knowledge) => router.push(`/dashboard/topics/${topicId}/knowledges/${knowledge.id}`)}
-                      onEdit={handleEditKnowledge}
-                      onDelete={handleDeleteKnowledge}
-                    />
-                  </Col>
-                ))}
-              </Row>
-            ) : (
-              <Card style={{ textAlign: 'center', padding: '48px 0' }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📝</div>
-                <Text type="secondary" style={{ fontSize: '16px', display: 'block', marginBottom: '16px' }}>
-                  No knowledges yet
-                </Text>
               </Card>
             )}
           </Col>
