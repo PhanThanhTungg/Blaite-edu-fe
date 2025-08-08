@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import prisma from "@/lib/prisma";
+
 
 /**
  * Xác thực token Clerk bằng jsonwebtoken và trả về userId nếu hợp lệ, ngược lại trả về null.
@@ -18,19 +18,6 @@ export async function verifyTokenAndGetUserId(
     console.log(e);
     return null;
   }
-}
-
-/**
- * Tìm user theo clerkUserId, nếu không thấy thì tạo mới.
- */
-export async function findOrCreateUser(clerkUserId: string, timezone: string) {
-  let user = await prisma.user.findUnique({ where: { clerkUserId } });
-  if (!user) {
-    user = await prisma.user.create({
-      data: { clerkUserId, timezone },
-    });
-  }
-  return user;
 }
 
 // Color utility functions
