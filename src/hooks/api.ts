@@ -170,4 +170,10 @@ export async function getActivities() {
   // This endpoint doesn't exist in your current backend
   // You might need to implement it or use a different approach
   return [];
+}
+
+// Dashboard Statistics API
+export async function getDashboardStatistics() {
+  const res = await api.get('/dashboard/statistics');
+  return res.data;
 } 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getUser, getClasses, getActivities } from "@/hooks/api";
+import { getUser, getClasses, getActivities, getDashboardStatistics } from "@/hooks/api";
 import ActivityGraph from "@/components/ActivityGraph";
 import StatsCard from "@/components/StatsCard";
 import CreateClassModal from "@/components/CreateClassModal";
@@ -44,7 +44,22 @@ export default function DashboardPage() {
     queryFn: getClasses,
   });
 
-  // Fetch activities for current year
+  // Fetch dashboard statistics
+  const {
+    data: statistics = {
+      currentStreak: 0,
+      longestStreak: 0,
+      bestDay: 0,
+      activeDays: 0
+    },
+    isLoading: statisticsLoading,
+    error: statisticsError,
+  } = useQuery({
+    queryKey: ["dashboard-statistics"],
+    queryFn: getDashboardStatistics,
+  });
+
+  // Fetch activities for current year (for activity graph)
   const currentYear = new Date().getFullYear();
   const {
     data: activities = [],
@@ -56,8 +71,8 @@ export default function DashboardPage() {
   });
 
   // Check for any errors
-  const hasError = userError || classesError || activitiesError;
-  const isLoading = userLoading || classesLoading || activitiesLoading;
+  const hasError = userError || classesError || statisticsError || activitiesError;
+  const isLoading = userLoading || classesLoading || statisticsLoading || activitiesLoading;
 
   // Handle error state
   if (hasError) {
@@ -95,79 +110,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Calculate learning statistics
-  const calculateStats = () => {
-    const today = new Date();
-    const todayStr = today.toISOString().split("T")[0];
 
-    // Convert activities to map for easier lookup
-    const activityMap = new Map();
-    activities.forEach((activity: any) => {
-      const dateStr = activity.date.toISOString().split("T")[0];
-      activityMap.set(dateStr, activity.count);
-    });
-
-    // Calculate current streak
-    let currentStreak = 0;
-    const currentDate = new Date(today);
-
-    while (true) {
-      const dateStr = currentDate.toISOString().split("T")[0];
-      const count = activityMap.get(dateStr) || 0;
-
-      if (count > 0) {
-        currentStreak++;
-        currentDate.setDate(currentDate.getDate() - 1);
-      } else {
-        break;
-      }
-    }
-
-    // Calculate longest streak
-    let longestStreak = 0;
-    let tempStreak = 0;
-    const sortedDates = Array.from(activityMap.keys()).sort();
-
-    for (const dateStr of sortedDates) {
-      const count = activityMap.get(dateStr) || 0;
-      if (count > 0) {
-        tempStreak++;
-        longestStreak = Math.max(longestStreak, tempStreak);
-      } else {
-        tempStreak = 0;
-      }
-    }
-
-    // Find best day (most answers in a single day)
-    let bestDay = 0;
-    let bestDayDate = "";
-    for (const [dateStr, count] of activityMap) {
-      if (count > bestDay) {
-        bestDay = count;
-        bestDayDate = dateStr;
-      }
-    }
-
-    // Calculate total active days
-    const activeDays = activityMap.size;
-
-    // Calculate total answers
-    const totalAnswers = activities.reduce(
-      (sum: number, activity: any) => sum + activity.count,
-      0
-    );
-
-    return {
-      currentStreak,
-      longestStreak,
-      bestDay,
-      bestDayDate,
-      activeDays,
-      totalAnswers,
-    };
-  };
-
-  const stats = calculateStats();
 
   return (
     <ClientOnly>
@@ -178,7 +121,7 @@ export default function DashboardPage() {
             <Col xs={24} sm={12} lg={6}>
               <StatsCard
                 title="Current Streak"
-                value={stats.currentStreak}
+                value={statistics.currentStreak}
                 icon="🔥"
                 iconColor="#ff4d4f"
                 suffix=" days"
@@ -187,7 +130,7 @@ export default function DashboardPage() {
             <Col xs={24} sm={12} lg={6}>
               <StatsCard
                 title="Longest Streak"
-                value={stats.longestStreak}
+                value={statistics.longestStreak}
                 icon="🏆"
                 iconColor="#faad14"
                 suffix=" days"
@@ -196,7 +139,7 @@ export default function DashboardPage() {
             <Col xs={24} sm={12} lg={6}>
               <StatsCard
                 title="Best Day"
-                value={stats.bestDay}
+                value={statistics.bestDay}
                 icon="⭐"
                 iconColor="#722ed1"
                 suffix=" answers"
@@ -205,7 +148,7 @@ export default function DashboardPage() {
             <Col xs={24} sm={12} lg={6}>
               <StatsCard
                 title="Active Days"
-                value={stats.activeDays}
+                value={statistics.activeDays}
                 icon="📅"
                 iconColor="#52c41a"
                 suffix=" days"
@@ -214,15 +157,11 @@ export default function DashboardPage() {
           </Row>
 
           {/* Best Day Info */}
-          {stats.bestDay > 0 && (
+          {statistics.bestDay > 0 && (
             <Card size="small">
               <div style={{ textAlign: "center" }}>
                 <Text>
-                  🎉 Your best day was{" "}
-                  <Text strong>
-                    {new Date(stats.bestDayDate).toLocaleDateString()}
-                  </Text>{" "}
-                  with <Text strong>{stats.bestDay} answers</Text>!
+                  🎉 Your best day was with <Text strong>{statistics.bestDay} answers</Text>!
                 </Text>
               </div>
             </Card>
