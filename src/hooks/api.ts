@@ -138,6 +138,52 @@ export async function generateKnowledge(topicId: string, maxTokens: number = 100
   return res.data;
 }
 
+export async function generateTheory(knowledgeId: string, maxTokens: number = 1000, temperature: number = 0.5) {
+  const res = await api.post(`/knowledges/${knowledgeId}/generate-theory?maxTokens=${maxTokens}&temperature=${temperature}`);
+  return res.data;
+}
+
+export async function generateTheoryQuestion(knowledgeId: string) {
+  try {
+    const res = await api.post(`/questions/knowledge/${knowledgeId}/generate/theory`);
+    // If 201 created, return the new question data directly
+    if (res.status === 201) {
+      return res.data;
+    }
+    return res.data;
+  } catch (error: any) {
+    // If 400 bad request, get the latest unanswered question
+    if (error.response?.status === 400) {
+      const latestRes = await api.get(`/questions/knowledge/${knowledgeId}/latest-unanswered/theory`);
+      return latestRes.data;
+    }
+    throw error;
+  }
+}
+
+export async function submitQuestionAnswer(questionId: string, answer: string) {
+  const res = await api.post(`/questions/answer/${questionId}`, { answer });
+  return res.data;
+}
+
+export async function generatePracticeQuestion(knowledgeId: string) {
+  try {
+    const res = await api.post(`/questions/knowledge/${knowledgeId}/generate/practice`);
+    // If 201 created, return the new question data directly
+    if (res.status === 201) {
+      return res.data;
+    }
+    return res.data;
+  } catch (error: any) {
+    // If 400 bad request, get the latest unanswered question
+    if (error.response?.status === 400) {
+      const latestRes = await api.get(`/questions/knowledge/${knowledgeId}/latest-unanswered/practice`);
+      return latestRes.data;
+    }
+    throw error;
+  }
+}
+
 export async function editKnowledge(knowledgeId: string, content: string) {
   const res = await api.patch(`/knowledges/${knowledgeId}`, { content });
   return res.data;
@@ -185,5 +231,11 @@ export async function getActivities() {
 // Dashboard Statistics API
 export async function getDashboardStatistics() {
   const res = await api.get('/dashboard/statistics');
+  return res.data;
+}
+
+// Dashboard Calendar API
+export async function getDashboardCalendar(year: number = new Date().getFullYear()) {
+  const res = await api.get(`/dashboard/calendar?year=${year}`);
   return res.data;
 } 

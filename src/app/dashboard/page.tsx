@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getUser, getClasses, getActivities, getDashboardStatistics } from "@/hooks/api";
+import { getUser, getClasses, getActivities, getDashboardStatistics, getDashboardCalendar } from "@/hooks/api";
 import ActivityGraph from "@/components/ActivityGraph";
 import StatsCard from "@/components/StatsCard";
 import CreateClassModal from "@/components/CreateClassModal";
@@ -62,13 +62,23 @@ export default function DashboardPage() {
   // Fetch activities for current year (for activity graph)
   const currentYear = new Date().getFullYear();
   const {
-    data: activities = [],
+    data: calendarData = [],
     isLoading: activitiesLoading,
     error: activitiesError,
   } = useQuery({
-    queryKey: ["activities", currentYear],
-    queryFn: () => getActivities(),
+    queryKey: ["dashboard-calendar", currentYear],
+    queryFn: () => getDashboardCalendar(currentYear),
   });
+
+  // Transform calendar data to match ActivityGraph interface
+  const activities = calendarData.map((item: any, index: number) => ({
+    id: index,
+    userId: 1, // dummy value
+    date: new Date(item.date),
+    count: item.count,
+    createdAt: new Date(item.date),
+    updatedAt: new Date(item.date),
+  }));
 
   // Check for any errors
   const hasError = userError || classesError || statisticsError || activitiesError;

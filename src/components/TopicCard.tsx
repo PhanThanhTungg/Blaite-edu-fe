@@ -120,14 +120,20 @@ export default function TopicCard({
           {topic.totalQuestion || 0}
         </Descriptions.Item>
         <Descriptions.Item label="Practice Score">
-          {topic.avgScorePractice ? `${topic.avgScorePractice}%` : "0%"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Theory Score">
-          {topic.avgScoreTheory ? `${topic.avgScoreTheory}%` : "0%"}
-        </Descriptions.Item>
-        <Descriptions.Item label="Avg Score">
+  {topic.avgScorePractice
+    ? `${Number(topic.avgScorePractice).toFixed(2)}%`
+    : "0.00%"}
+</Descriptions.Item>
+
+<Descriptions.Item label="Theory Score">
+  {topic.avgScoreTheory
+    ? `${Number(topic.avgScoreTheory).toFixed(2)}%`
+    : "0.00%"}
+</Descriptions.Item>
+
+        {/* <Descriptions.Item label="Avg Score">
           {getAverageScore()}%
-        </Descriptions.Item>
+        </Descriptions.Item> */}
         <Descriptions.Item label="Status">
           <Tag color={topic.status === "active" ? "green" : "red"}>
             {topic.status === "active" ? "Active" : "Inactive"}
