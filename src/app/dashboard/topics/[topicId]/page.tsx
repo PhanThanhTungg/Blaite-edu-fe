@@ -8,10 +8,7 @@ import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Ske
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined } from '@ant-design/icons'
 import { useState } from 'react'
 import { getTopic } from '@/services/topic.service';
-import { getKnowledges } from '@/services/knowledge.service';
-import { generateKnowledge } from '@/services/knowledge.service';
-import { generateTheory } from '@/services/knowledge.service';
-import { getKnowledgeDetail } from '@/services/knowledge.service';
+import { getKnowledges, generateKnowledge, generateTheory, getKnowledgeDetail, deleteKnowledge } from '@/services/knowledge.service';
 import { generateTheoryQuestion } from '@/services/question.service';
 import { generatePracticeQuestion } from '@/services/question.service';
 import { submitQuestionAnswer } from '@/services/question.service';
@@ -409,6 +406,31 @@ export default function TopicDetailPage() {
                       {new Date(selectedKnowledgeForTree.createdAt).toLocaleDateString()}
                     </Descriptions.Item>
                   </Descriptions>
+                  
+                  {/* Actions Section */}
+                  <div style={{ 
+                    marginTop: '24px', 
+                    paddingTop: '16px', 
+                    borderTop: '1px solid #f0f0f0',
+                    display: 'flex',
+                    gap: '8px'
+                  }}>
+                    <Button
+                      type="default"
+                      icon={<EditOutlined />}
+                      onClick={() => handleEditKnowledge(selectedKnowledgeForTree)}
+                    >
+                      Edit Knowledge
+                    </Button>
+                    <Button
+                      type="primary"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleDeleteKnowledge(selectedKnowledgeForTree.id)}
+                    >
+                      Delete Knowledge
+                    </Button>
+                  </div>
                   
                           {/* Children Knowledge List for Parent Nodes */}
                           {selectedKnowledgeForTree.children && selectedKnowledgeForTree.children.length > 0 && (
