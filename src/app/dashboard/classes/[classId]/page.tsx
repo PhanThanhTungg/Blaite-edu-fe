@@ -4,14 +4,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
 import { getClass, } from "@/services/class.service";
-import { getTopics } from "@/services/topic.service";
+import { getTopics, genTopicByAi } from "@/services/topic.service";
 import { getUser } from "@/services/auth.service";
 import { updateTopicStatus } from "@/services/topic.service";
 import { getTopic } from "@/services/topic.service";
 import { getKnowledges } from "@/services/knowledge.service";
 import { PageContainer } from "@ant-design/pro-components";
-import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb } from "antd";
-import { PlusOutlined, HomeOutlined } from "@ant-design/icons";
+import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb, message } from "antd";
+import { PlusOutlined, HomeOutlined, RobotOutlined } from "@ant-design/icons";
 import TopicCard from "@/components/features/topic/TopicCard";
 import CreateTopicModal from "@/components/features/topic/CreateTopicModal";
 import EditTopicModal from "@/components/features/topic/EditTopicModal";
@@ -69,9 +69,38 @@ export default function ClassDetailPage() {
     },
   });
 
+  // Gen Topic by AI mutation
+  const genTopicMutation = useMutation({
+    mutationFn: () => {
+      message.loading({ content: 'Đang tạo topics bằng AI...', key: 'genTopic' });
+      return genTopicByAi(classId);
+    },
+    onSuccess: (data) => {
+      message.success({ 
+        content: `Đã tạo thành công ${data?.length || 'một số'} topics bằng AI!`, 
+        key: 'genTopic' 
+      });
+      // Refresh topics list
+      queryClient.invalidateQueries({ queryKey: ['topics', classId] });
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+    },
+    onError: (error) => {
+      console.error('Error generating topics:', error);
+      message.error({ 
+        content: 'Có lỗi xảy ra khi tạo topics bằng AI. Vui lòng thử lại!', 
+        key: 'genTopic' 
+      });
+    },
+  });
+
   // Handle status change
   const handleStatusChange = (topicId: string | number, status: string) => {
     statusUpdateMutation.mutate({ topicId: topicId.toString(), status });
+  };
+
+  // Handle gen topic by AI
+  const handleGenTopicByAI = () => {
+    genTopicMutation.mutate();
   };
 
   // Fetch class data
@@ -237,13 +266,24 @@ export default function ClassDetailPage() {
               <Title level={3} style={{ margin: 0 }}>
                 Topics
               </Title>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => setCreateModalOpen(true)}
-              >
-                Create Topic
-              </Button>
+              <Space>
+                <Button
+                  type="default"
+                  icon={<RobotOutlined />}
+                  onClick={handleGenTopicByAI}
+                  loading={genTopicMutation.isPending}
+                  disabled={genTopicMutation.isPending}
+                >
+                  Gen Topic by AI
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setCreateModalOpen(true)}
+                >
+                  Create Topic
+                </Button>
+              </Space>
             </div>
 
             {topics.length > 0 ? (

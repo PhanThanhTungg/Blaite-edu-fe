@@ -21,6 +21,11 @@ export async function editTopic(topicId: string, name: string, prompt?: string) 
   return res.data;
 }
 
+export async function genTopicByAi(classId: string) {
+  const res = await api.post(`/topics/class/${classId}/generate`);
+  return res.data;
+}
+
 export async function updateTopicStatus(topicId: string, status: string) {
   const res = await api.patch(`/topics/${topicId}/status`, { status });
   return res.data;
