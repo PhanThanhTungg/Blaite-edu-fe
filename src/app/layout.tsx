@@ -4,12 +4,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 
 import "./globals.css";
 
-import AStudyAppProvider from "@/components/HappyThemeProvider";
-import TanstackProvider from "@/components/TanstackProvider";
+import AStudyAppProvider from "@/components/providers/HappyThemeProvider";
+import TanstackProvider from "@/components/providers/TanstackProvider";
 import { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App, ConfigProvider } from "antd";
-import UserBootstrap from "@/components/UserBootstrap";
+import UserBootstrap from "@/components/features/user/UserBootstrap";
 
 export const metadata: Metadata = {
   title: "AStudy - AI-Powered Learning Platform",

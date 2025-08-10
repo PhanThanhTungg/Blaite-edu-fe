@@ -12,11 +12,11 @@ import { getKnowledges } from "@/services/knowledge.service";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb } from "antd";
 import { PlusOutlined, HomeOutlined } from "@ant-design/icons";
-import TopicCard from "@/components/TopicCard";
-import CreateTopicModal from "@/components/CreateTopicModal";
-import EditTopicModal from "@/components/EditTopicModal";
-import DeleteTopicModal from "@/components/DeleteTopicModal";
-import ClientOnly from '@/components/ClientOnly';
+import TopicCard from "@/components/features/topic/TopicCard";
+import CreateTopicModal from "@/components/features/topic/CreateTopicModal";
+import EditTopicModal from "@/components/features/topic/EditTopicModal";
+import DeleteTopicModal from "@/components/features/topic/DeleteTopicModal";
+import ClientOnly from '@/components/ui/ClientOnly';
 
 const { Text, Title } = Typography;
 

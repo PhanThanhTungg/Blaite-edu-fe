@@ -16,13 +16,13 @@ import { generateTheoryQuestion } from '@/services/question.service';
 import { generatePracticeQuestion } from '@/services/question.service';
 import { submitQuestionAnswer } from '@/services/question.service';
 import { getClass } from '@/services/class.service';
-import EditTopicModal from '@/components/EditTopicModal';
-import KnowledgeCard from '@/components/KnowledgeCard';
-import DeleteTopicModal from '@/components/DeleteTopicModal';
-import CreateKnowledgeModal from '@/components/CreateKnowledgeModal';
-import EditKnowledgeModal from '@/components/EditKnowledgeModal';
-import DeleteKnowledgeModal from '@/components/DeleteKnowledgeModal';
-import KnowledgeTree from '@/components/KnowledgeTree';
+import EditTopicModal from '@/components/features/topic/EditTopicModal';
+import KnowledgeCard from '@/components/features/knowledge/KnowledgeCard';
+import DeleteTopicModal from '@/components/features/topic/DeleteTopicModal';
+import CreateKnowledgeModal from '@/components/features/knowledge/CreateKnowledgeModal';
+import EditKnowledgeModal from '@/components/features/knowledge/EditKnowledgeModal';
+import DeleteKnowledgeModal from '@/components/features/knowledge/DeleteKnowledgeModal';
+import KnowledgeTree from '@/components/features/knowledge/KnowledgeTree';
 
 const { Title, Text, Paragraph } = Typography
 

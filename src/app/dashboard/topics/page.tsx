@@ -7,9 +7,9 @@ import { PageContainer } from '@ant-design/pro-components'
 import { Button, Table, Tag, Spin, Alert, Popconfirm, Typography, Dropdown } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons'
 import Link from 'next/link'
-import CreateTopicModal from '@/components/CreateTopicModal'
-import EditTopicModal from '@/components/EditTopicModal'
-import DeleteTopicModal from '@/components/DeleteTopicModal'
+import CreateTopicModal from '@/components/features/topic/CreateTopicModal'
+import EditTopicModal from '@/components/features/topic/EditTopicModal'
+import DeleteTopicModal from '@/components/features/topic/DeleteTopicModal'
 
 const { Text } = Typography
 

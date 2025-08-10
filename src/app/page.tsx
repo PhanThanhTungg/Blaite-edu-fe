@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 import { Button, Card, Typography, Space } from 'antd';
-import ClientOnly from '@/components/ClientOnly';
+import ClientOnly from '@/components/ui/ClientOnly';
 
 const { Title, Paragraph } = Typography;
 

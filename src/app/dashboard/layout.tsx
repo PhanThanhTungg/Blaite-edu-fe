@@ -1,6 +1,6 @@
 "use client";
 import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
-import ProLayoutWrapper from '@/components/ProLayoutWrapper';
+import ProLayoutWrapper from '@/components/layout/ProLayoutWrapper';
 import { Button, Card, Typography } from 'antd';
 
 const { Title } = Typography;

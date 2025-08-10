@@ -28,7 +28,7 @@ import { createQuestion } from '@/services/question.service';
 import { submitAnswer } from '@/services/question.service';
 import { generateQuestionWithGemini } from '@/services/question.service';
 import { useEffect, useState, useRef } from "react";
-import SafeXmlRender from "@/components/SafeXmlRender";
+import SafeXmlRender from "@/components/ui/SafeXmlRender";
 
 const { Title, Text, Paragraph } = Typography;
 

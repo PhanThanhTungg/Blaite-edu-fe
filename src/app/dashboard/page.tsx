@@ -7,16 +7,16 @@ import { getUser } from "@/services/auth.service";
 import { getClasses } from "@/services/class.service";
 import { getDashboardStatistics } from "@/services/dashboard.service";
 import { getDashboardCalendar } from "@/services/dashboard.service";
-import ActivityGraph from "@/components/ActivityGraph";
-import StatsCard from "@/components/StatsCard";
-import CreateClassModal from "@/components/CreateClassModal";
-import EditClassModal from "@/components/EditClassModal";
-import DeleteClassModal from "@/components/DeleteClassModal";
+import ActivityGraph from "@/components/features/dashboard/ActivityGraph";
+import StatsCard from "@/components/ui/StatsCard";
+import CreateClassModal from "@/components/features/class/CreateClassModal";
+import EditClassModal from "@/components/features/class/EditClassModal";
+import DeleteClassModal from "@/components/features/class/DeleteClassModal";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
-import ClassCard from "@/components/ClassCard";
-import ClientOnly from '@/components/ClientOnly';
+import ClassCard from "@/components/features/class/ClassCard";
+import ClientOnly from '@/components/ui/ClientOnly';
 
 const { Text, Title } = Typography;
 

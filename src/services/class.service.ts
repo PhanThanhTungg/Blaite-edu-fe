@@ -13,8 +13,7 @@ export async function getClass(classId: string) {
 export async function createClass(name: string, description?: string) {
   const res = await api.post('/classes', { 
     name, 
-    prompt: description || `This is a class about ${name}`,
-    status: 'private'
+    prompt: description || `This is a class about ${name}`
   });
   return res.data;
 }
@@ -22,8 +21,7 @@ export async function createClass(name: string, description?: string) {
 export async function editClass(classId: string, name: string, description?: string) {
   const res = await api.patch(`/classes/${classId}`, { 
     name, 
-    prompt: description || `This is a class about ${name}`,
-    status: 'private'
+    prompt: description || `This is a class about ${name}`
   });
   return res.data;
 }
