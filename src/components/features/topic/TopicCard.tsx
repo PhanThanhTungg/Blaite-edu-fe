@@ -69,7 +69,6 @@ export default function TopicCard({
   const handleStatusToggle = (checked: boolean) => {
     if (onStatusChange) {
       const newStatus = checked ? "active" : "inactive";
-      console.log('🔍 Toggling topic status:', topic.id, 'from', topic.status, 'to', newStatus);
       onStatusChange(topic.id, newStatus);
     }
   };

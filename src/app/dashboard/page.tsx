@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { getUser } from "@/services/auth.service";
-import { getClasses } from "@/services/class.service";
+import { getClasses, editClass } from "@/services/class.service";
 import { getDashboardStatistics } from "@/services/dashboard.service";
 import { getDashboardCalendar } from "@/services/dashboard.service";
 import ActivityGraph from "@/components/features/dashboard/ActivityGraph";
@@ -22,10 +22,54 @@ const { Text, Title } = Typography;
 
 export default function DashboardPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<any>(null);
+
+  // Class status update mutation
+  const classStatusUpdateMutation = useMutation({
+    mutationFn: ({ classId, status }: { classId: string; status: string }) => {
+      // Tìm class để lấy thông tin hiện tại
+      const currentClass = classes.find((c: any) => c.id === classId);
+      return editClass(classId, currentClass?.name || '', currentClass?.prompt, status as "active" | "inactive");
+    },
+    onMutate: async ({ classId, status }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['classes'] });
+      
+      // Snapshot the previous value
+      const previousClasses = queryClient.getQueryData(['classes']);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(['classes'], (old: any) => {
+        if (!old) return old;
+        return old.map((classItem: any) => 
+          classItem.id === classId ? { ...classItem, status } : classItem
+        );
+      });
+      
+      // Return a context object with the snapshotted value
+      return { previousClasses };
+    },
+    onError: (err, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousClasses) {
+        queryClient.setQueryData(['classes'], context.previousClasses);
+      }
+      console.error('Error updating class status:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['classes'] });
+    },
+  });
+
+  // Handle class status change
+  const handleClassStatusChange = (classId: string, status: string) => {
+    classStatusUpdateMutation.mutate({ classId, status });
+  };
 
   // Fetch user data
   const {
@@ -237,6 +281,7 @@ export default function DashboardPage() {
                           });
                           setDeleteModalOpen(true);
                         }}
+                        onStatusChange={handleClassStatusChange}
                       />
                     </Col>
                   );

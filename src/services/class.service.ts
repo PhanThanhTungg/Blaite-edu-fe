@@ -18,10 +18,12 @@ export async function createClass(name: string, description?: string) {
   return res.data;
 }
 
-export async function editClass(classId: string, name: string, description?: string) {
+export async function editClass(classId: string, name: string, description?: string, status?: "active" | "inactive") {
+  console.log('🔍 Editing class:', classId, name, description, status);
   const res = await api.patch(`/classes/${classId}`, { 
     name, 
-    prompt: description || `This is a class about ${name}`
+    prompt: description || `This is a class about ${name}`,
+    status
   });
   return res.data;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Button, Space, Typography, Progress } from 'antd';
+import { Card, Button, Space, Typography, Progress, Switch, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
 const { Text, Title } = Typography;
@@ -10,6 +10,7 @@ interface ClassCardProps {
     id: string;
     name: string;
     prompt?: string;
+    status?: string;
     topicsCount?: number;
     knowledgesCount?: number;
     questionsCount?: number;
@@ -19,13 +20,22 @@ interface ClassCardProps {
   onView: (classItem: any) => void;
   onEdit: (classItem: any) => void;
   onDelete: (classId: string) => void;
+  onStatusChange?: (classId: string, status: string) => void;
 }
 
-export default function ClassCard({ class: classItem, onView, onEdit, onDelete }: ClassCardProps) {
+export default function ClassCard({ class: classItem, onView, onEdit, onDelete, onStatusChange }: ClassCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 80) return '#52c41a';
     if (score >= 60) return '#faad14';
     return '#ff4d4f';
+  };
+
+  // Status switch handler
+  const handleStatusToggle = (checked: boolean) => {
+    if (onStatusChange) {
+      const newStatus = checked ? "active" : "inactive";
+      onStatusChange(classItem.id, newStatus);
+    }
   };
 
   return (
@@ -68,10 +78,25 @@ export default function ClassCard({ class: classItem, onView, onEdit, onDelete }
         </Button>,
       ]}
     >
+      {/* Header với tên class và toggle */}
       <div className="mb-4">
-        <Title level={4} style={{ margin: 0, marginBottom: 8 }}>
-          {classItem.name}
-        </Title>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start',
+          marginBottom: 8 
+        }}>
+          <Title level={4} style={{ margin: 0, marginBottom: 8, flex: 1 }}>
+            {classItem.name}
+          </Title>
+          {onStatusChange && (
+            <Switch
+              checked={classItem.status === "active"}
+              size="small"
+              onChange={handleStatusToggle}
+            />
+          )}
+        </div>
         {classItem.prompt && (
           <Text type="secondary" style={{ fontSize: '14px' }}>
             {classItem.prompt}
@@ -109,6 +134,15 @@ export default function ClassCard({ class: classItem, onView, onEdit, onDelete }
               showInfo={false}
               size="small"
             />
+          </div>
+        )}
+
+        {classItem.status && (
+          <div className="flex justify-between items-center">
+            <Text type="secondary">Status:</Text>
+            <Tag color={classItem.status === "active" ? "green" : "red"}>
+              {classItem.status === "active" ? "Active" : "Inactive"}
+            </Tag>
           </div>
         )}
 
