@@ -3,7 +3,7 @@
 import { Modal, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import TopicForm from './TopicForm';
-import { getTopic } from '@/hooks/api';
+import { getTopic } from '@/services/topic.service';
 
 interface TopicData {
   id: string | number;
@@ -16,7 +16,7 @@ interface TopicData {
 
 interface EditTopicModalProps {
   open: boolean;
-  topic: TopicData | null;
+  topic: any;
   onCancel: () => void;
   onSuccess?: () => void;
 }

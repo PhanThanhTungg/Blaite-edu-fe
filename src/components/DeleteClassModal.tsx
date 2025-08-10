@@ -3,7 +3,7 @@
 import { Modal, Typography } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
-import { deleteClass } from '@/hooks/api';
+import { deleteClass } from '@/services/class.service';
 
 const { Text } = Typography;
 

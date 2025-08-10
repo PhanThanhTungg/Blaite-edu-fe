@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { getUser, getClasses, getActivities, getDashboardStatistics, getDashboardCalendar } from "@/hooks/api";
+import { getUser } from "@/services/auth.service";
+import { getClasses } from "@/services/class.service";
+import { getDashboardStatistics } from "@/services/dashboard.service";
+import { getDashboardCalendar } from "@/services/dashboard.service";
 import ActivityGraph from "@/components/ActivityGraph";
 import StatsCard from "@/components/StatsCard";
 import CreateClassModal from "@/components/CreateClassModal";

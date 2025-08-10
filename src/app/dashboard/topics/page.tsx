@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getTopics } from '@/hooks/api';
+import { getTopics } from '@/services/topic.service';
 import { PageContainer } from '@ant-design/pro-components'
 import { Button, Table, Tag, Spin, Alert, Popconfirm, Typography, Dropdown } from 'antd'
 import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, MoreOutlined } from '@ant-design/icons'

@@ -17,9 +17,10 @@ import {
   EditOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { getDifficultyColor } from "@/utils/helpers";
+import { getDifficultyColor } from "@/helpers/common.helper";
 import { useQueryClient } from "@tanstack/react-query";
-import { getTopic, getKnowledges } from "@/hooks/api";
+import { getTopic } from "@/services/topic.service";
+import { getKnowledges } from "@/services/knowledge.service";
 
 const { Text } = Typography;
 

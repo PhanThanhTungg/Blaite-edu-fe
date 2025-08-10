@@ -42,8 +42,8 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
     >
       <KnowledgeForm
         mode="edit"
-        topicId={knowledge.topicId}
-        knowledgeId={knowledge.id}
+        topicId={knowledge.topicId+""}
+        knowledgeId={knowledge.id+""}
         initialValues={{
           content: knowledge.content || knowledge.prompt || '',
         }}

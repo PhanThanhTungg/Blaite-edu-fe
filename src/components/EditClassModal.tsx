@@ -2,7 +2,7 @@
 
 import { Modal, Form, Input } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { editClass } from '@/hooks/api';
+import { editClass } from '@/services/class.service';
 import { useEffect } from 'react';
 import { App } from 'antd';
 

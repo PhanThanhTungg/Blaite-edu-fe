@@ -3,7 +3,7 @@
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
-import api from '@/hooks/api';
+import api from '@/services/axios-customize.service';
 
 interface TopicFormValues {
   name: string;

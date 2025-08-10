@@ -7,7 +7,15 @@ import { PageContainer } from '@ant-design/pro-components'
 import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined } from '@ant-design/icons'
 import { useState } from 'react'
-import { getTopic, getKnowledges, generateKnowledge, generateTheory, getKnowledgeDetail, generateTheoryQuestion, generatePracticeQuestion, submitQuestionAnswer, getClass } from '@/hooks/api';
+import { getTopic } from '@/services/topic.service';
+import { getKnowledges } from '@/services/knowledge.service';
+import { generateKnowledge } from '@/services/knowledge.service';
+import { generateTheory } from '@/services/knowledge.service';
+import { getKnowledgeDetail } from '@/services/knowledge.service';
+import { generateTheoryQuestion } from '@/services/question.service';
+import { generatePracticeQuestion } from '@/services/question.service';
+import { submitQuestionAnswer } from '@/services/question.service';
+import { getClass } from '@/services/class.service';
 import EditTopicModal from '@/components/EditTopicModal';
 import KnowledgeCard from '@/components/KnowledgeCard';
 import DeleteTopicModal from '@/components/DeleteTopicModal';
@@ -137,7 +145,7 @@ export default function TopicDetailPage() {
       };
       
       // Generate theory for the newly created knowledges
-      await generateTheoryForLeafNodes(newKnowledges);
+      await generateTheoryForLeafNodes(newKnowledges as any);
       
       // Refresh the data
       queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });

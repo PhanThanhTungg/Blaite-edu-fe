@@ -3,7 +3,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useParams } from "next/navigation";
-import { getClass, getTopics, getUser, updateTopicStatus, getTopic, getKnowledges } from "@/hooks/api";
+import { getClass, } from "@/services/class.service";
+import { getTopics } from "@/services/topic.service";
+import { getUser } from "@/services/auth.service";
+import { updateTopicStatus } from "@/services/topic.service";
+import { getTopic } from "@/services/topic.service";
+import { getKnowledges } from "@/services/knowledge.service";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb } from "antd";
 import { PlusOutlined, HomeOutlined } from "@ant-design/icons";

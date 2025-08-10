@@ -22,7 +22,11 @@ import {
   RobotOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import { getKnowledgeDetail, getQuestions, createQuestion, submitAnswer, generateQuestionWithGemini } from '@/hooks/api';
+import { getKnowledgeDetail } from '@/services/knowledge.service';
+import { getQuestions } from '@/services/question.service';
+import { createQuestion } from '@/services/question.service';
+import { submitAnswer } from '@/services/question.service';
+import { generateQuestionWithGemini } from '@/services/question.service';
 import { useEffect, useState, useRef } from "react";
 import SafeXmlRender from "@/components/SafeXmlRender";
 
@@ -79,7 +83,7 @@ export default function KnowledgeDetailAndPracticePage() {
     setIsGeneratingQuestion(true);
     try {
       // Gọi AI sinh câu hỏi
-      const result = await generateQuestionWithGemini({ content: knowledge.content });
+      const result = await generateQuestionWithGemini(knowledge.content as string);
       const questionContent = result.question || knowledge.content;
       await createQuestion(knowledgeId, 'practice');
     } catch (e) {

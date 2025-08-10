@@ -2,8 +2,9 @@
 
 import { Modal, Form, Input } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClass } from '@/hooks/api';
+
 import { App } from 'antd';
+import { createClass } from '@/services/class.service';
 
 interface CreateClassModalProps {
   open: boolean;

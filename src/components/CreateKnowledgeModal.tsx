@@ -28,7 +28,7 @@ export default function CreateKnowledgeModal({ open, topicId, onCancel, onSucces
     >
       <KnowledgeForm
         mode="create"
-        topicId={topicId}
+        topicId={topicId+""}
         onSuccess={onSuccess}
         onCancel={handleCancel}
       />
