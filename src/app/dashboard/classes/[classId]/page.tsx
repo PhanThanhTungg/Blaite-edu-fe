@@ -209,7 +209,7 @@ export default function ClassDetailPage() {
               </div>
               
               <Row gutter={[16, 16]}>
-                <Col xs={12} sm={6}>
+                <Col xs={24} sm={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1677ff' }}>
                        {classData.totalTopic || 0}
@@ -217,7 +217,7 @@ export default function ClassDetailPage() {
                     <Text type="secondary">Topics</Text>
                   </div>
                 </Col>
-                <Col xs={12} sm={6}>
+                <Col xs={24} sm={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#52c41a' }}>
                        {classData.totalKnowledge || 0}
@@ -225,7 +225,7 @@ export default function ClassDetailPage() {
                     <Text type="secondary">Knowledges</Text>
                   </div>
                 </Col>
-                <Col xs={12} sm={6}>
+                <Col xs={24} sm={8}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#722ed1' }}>
                        {classData.totalQuestion || 0}
@@ -233,7 +233,7 @@ export default function ClassDetailPage() {
                     <Text type="secondary">Questions</Text>
                   </div>
                 </Col>
-                <Col xs={12} sm={6}>
+                {/* <Col xs={12} sm={6}>
                   <div style={{ textAlign: 'center' }}>
                     <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
                       {(() => {
@@ -248,7 +248,7 @@ export default function ClassDetailPage() {
                     </div>
                     <Text type="secondary">Avg Score</Text>
                   </div>
-                </Col>
+                </Col> */}
               </Row>
             </Card>
           )}
