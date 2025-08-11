@@ -13,7 +13,7 @@ export async function getKnowledgeDetail(knowledgeId: string) {
 }
 
 export async function createKnowledge(topicId: string, content: string) {
-  const res = await api.post('/knowledges', { topicId, content });
+  const res = await api.post('/knowledges', { topicId, prompt: content });
   return res.data;
 }
 
@@ -29,7 +29,7 @@ export async function generateTheory(knowledgeId: string, maxTokens: number = 10
 
 
 export async function editKnowledge(knowledgeId: string, content: string) {
-  const res = await api.patch(`/knowledges/${knowledgeId}`, { content });
+  const res = await api.patch(`/knowledges/${knowledgeId}`, { prompt: content });
   return res.data;
 }
 

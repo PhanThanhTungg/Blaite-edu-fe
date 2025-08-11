@@ -18,9 +18,10 @@ interface EditKnowledgeModalProps {
   knowledge: KnowledgeData | null;
   onCancel: () => void;
   onSuccess?: () => void;
+  onKnowledgeUpdate?: (updatedKnowledge: { id: string; prompt: string }) => void;
 }
 
-export default function EditKnowledgeModal({ open, knowledge, onCancel, onSuccess }: EditKnowledgeModalProps) {
+export default function EditKnowledgeModal({ open, knowledge, onCancel, onSuccess, onKnowledgeUpdate }: EditKnowledgeModalProps) {
   const handleCancel = () => {
     onCancel();
   };
@@ -45,9 +46,10 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
         topicId={knowledge.topicId+""}
         knowledgeId={knowledge.id+""}
         initialValues={{
-          content: knowledge.content || knowledge.prompt || '',
+          content: knowledge.prompt || knowledge.content || '',
         }}
         onSuccess={onSuccess}
+        onKnowledgeUpdate={onKnowledgeUpdate}
         onCancel={handleCancel}
       />
     </Modal>

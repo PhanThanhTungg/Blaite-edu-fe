@@ -820,9 +820,18 @@ export default function TopicDetailPage() {
           setEditKnowledgeModalOpen(false)
           setSelectedKnowledge(null)
         }}
-        onSuccess={() => {
+        onSuccess={async () => {
           setEditKnowledgeModalOpen(false)
           setSelectedKnowledge(null)
+          
+          // Refetch queries để đảm bảo data consistency
+          await queryClient.refetchQueries({ queryKey: ['topic-knowledges', topicId] })
+        }}
+        // Truyền callback để update selectedKnowledgeForTree ngay lập tức
+        onKnowledgeUpdate={(updatedKnowledge) => {
+          if (selectedKnowledgeForTree && selectedKnowledgeForTree.id === updatedKnowledge.id) {
+            setSelectedKnowledgeForTree(prev => ({ ...prev, prompt: updatedKnowledge.prompt }))
+          }
         }}
       />
 

@@ -1,9 +1,9 @@
 'use client';
 
+import { createKnowledge, editKnowledge } from '@/services/knowledge.service';
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
-import api from '@/services/axios-customize.service';
 
 interface KnowledgeFormValues {
   content: string;
@@ -16,6 +16,7 @@ interface KnowledgeFormProps {
   knowledgeId?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
+  onKnowledgeUpdate?: (updatedKnowledge: { id: string; prompt: string }) => void;
 }
 
 export default function KnowledgeForm({ 
@@ -24,7 +25,8 @@ export default function KnowledgeForm({
   initialValues, 
   knowledgeId, 
   onSuccess, 
-  onCancel 
+  onCancel,
+  onKnowledgeUpdate
 }: KnowledgeFormProps) {
   const queryClient = useQueryClient();
   const {message} = App.useApp();
@@ -33,11 +35,29 @@ export default function KnowledgeForm({
 
   const updateKnowledgeMutation = useMutation({
     mutationFn: (values: KnowledgeFormValues) =>
-      api.put(`/api/knowledge/${knowledgeId}`, { ...values, topicId }).then(res => res.data),
-    onSuccess: () => {
+      editKnowledge(knowledgeId as string, values.content),
+    onSuccess: async (updatedKnowledge, variables) => {
       message.success('Knowledge updated successfully!');
-      queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
-      queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
+      
+      // Gọi callback để update UI ngay lập tức
+      if (onKnowledgeUpdate && knowledgeId) {
+        onKnowledgeUpdate({ id: knowledgeId, prompt: variables.content });
+      }
+      
+      // Optimistic update: Update query cache immediately
+      queryClient.setQueryData(['topic-knowledges', topicId], (oldData: any[]) => {
+        if (!oldData) return oldData;
+        return oldData.map(knowledge => 
+          knowledge.id === knowledgeId 
+            ? { ...knowledge, prompt: variables.content }
+            : knowledge
+        );
+      });
+      
+      // Also refetch to ensure data consistency
+      queryClient.refetchQueries({ queryKey: ['knowledges', topicId] });
+      queryClient.refetchQueries({ queryKey: ['topic-knowledges', topicId] });
+      
       onSuccess?.();
     },
     onError: (error) => {
@@ -72,10 +92,10 @@ export default function KnowledgeForm({
   interface CreateKnowledgeInput {
     topicId: string;
     content: string;
-  }
+}
 
   const createKnowledgeMutation = useMutation({
-    mutationFn: (values: CreateKnowledgeInput) => api.post('/api/knowledge', values).then(res => res.data),
+    mutationFn: (values: CreateKnowledgeInput) => createKnowledge(values.topicId, values.content),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
       queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
