@@ -49,10 +49,11 @@ export default function DeleteKnowledgeModal({
   };
 
   // Truncate content for display
-  const truncatedContent =
-    knowledgeContent.length > 50
-      ? knowledgeContent.substring(0, 50) + "..."
-      : knowledgeContent;
+  const truncatedContent = knowledgeContent 
+    ? (knowledgeContent.length > 50
+        ? knowledgeContent.substring(0, 50) + "..."
+        : knowledgeContent)
+    : "No content available";
 
   return (
     <Modal

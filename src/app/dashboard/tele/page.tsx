@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageContainer } from '@ant-design/pro-components';
-import { Card, Button, Form, Input, Typography, Space, Alert, Divider, Tag, Row, Col, InputNumber, Descriptions } from 'antd';
+import { Card, Button, Form, Input, Typography, Space, Alert, Divider, Tag, Row, Col, InputNumber, Descriptions, Select } from 'antd';
 import { RobotOutlined, SendOutlined, CheckCircleOutlined, InfoCircleOutlined, ClockCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'react-toastify';
-import { changeIntervalSendQuestion } from '@/services/bot.service';
+import { changeIntervalSendQuestion, setScheduleTypeQuestion } from '@/services/bot.service';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -18,8 +18,20 @@ export default function TeleBotSetupPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [isUpdatingInterval, setIsUpdatingInterval] = useState(false);
   const [tempInterval, setTempInterval] = useState<number | null>(null);
+  
+  // State cho question type
+  const [isUpdatingQuestionType, setIsUpdatingQuestionType] = useState(false);
+  const [selectedQuestionType, setSelectedQuestionType] = useState<"theory" | "practice">("theory");
 
   const { user, refreshUser } = useUser();
+
+  // Load question type từ localStorage khi component mount
+  useEffect(() => {
+    const savedQuestionType = localStorage.getItem('botQuestionType') as "theory" | "practice";
+    if (savedQuestionType && (savedQuestionType === "theory" || savedQuestionType === "practice")) {
+      setSelectedQuestionType(savedQuestionType);
+    }
+  }, []);
 
   const handleConnect = async (values: any) => {
     if(user?.id) {
@@ -45,6 +57,24 @@ export default function TeleBotSetupPage() {
         setTempInterval(user?.intervalSendMessage || 60);
       } finally {
         setIsUpdatingInterval(false);
+      }
+    }
+  };
+
+  // Handler cho việc thay đổi loại câu hỏi
+  const handleQuestionTypeChange = async (questionType: "theory" | "practice") => {
+    if (questionType !== selectedQuestionType) {
+      try {
+        setIsUpdatingQuestionType(true);
+        await setScheduleTypeQuestion({ typeQuestion: questionType });
+        setSelectedQuestionType(questionType);
+        localStorage.setItem('botQuestionType', questionType);
+        toast.success(`Đã set loại câu hỏi "${questionType === 'theory' ? 'Lý thuyết' : 'Thực hành'}" cho bot thành công!`);
+      } catch (error) {
+        console.error('Error updating question type:', error);
+        toast.error('Có lỗi xảy ra khi cập nhật loại câu hỏi');
+      } finally {
+        setIsUpdatingQuestionType(false);
       }
     }
   };
@@ -182,6 +212,57 @@ export default function TeleBotSetupPage() {
             </Text>
           </div>
 
+          <div style={{ marginBottom: 24 }}>
+            <Text 
+              style={{ 
+                fontSize: 14,
+                fontWeight: 500,
+                color: '#333',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                display: 'block',
+                marginBottom: 8
+              }}
+            >
+              Loại câu hỏi bot sẽ gửi
+            </Text>
+            <div style={{
+              border: '1px solid #e5e5e5',
+              borderRadius: 4,
+              background: '#f9f9f9',
+              overflow: 'hidden'
+            }}>
+              <Select
+                value={selectedQuestionType}
+                onChange={handleQuestionTypeChange}
+                disabled={!user?.telegramId || isUpdatingQuestionType}
+                loading={isUpdatingQuestionType}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  fontSize: 16,
+                  fontWeight: 600,
+                  background: 'transparent',
+                  boxShadow: 'none',
+                  color: '#000',
+                }}
+                size="large"
+                options={[
+                  { value: 'theory', label: '📖 Lý thuyết', style: { fontSize: 16 } },
+                  { value: 'practice', label: '🎯 Thực hành', style: { fontSize: 16 } }
+                ]}
+              />
+            </div>
+            {isUpdatingQuestionType && (
+              <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>
+                Đang cập nhật...
+              </Text>
+            )}
+            <Text style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+              Chọn loại câu hỏi mà bot sẽ gửi định kỳ
+            </Text>
+          </div>
+
           <div>
             <Text 
               style={{ 
@@ -205,8 +286,8 @@ export default function TeleBotSetupPage() {
               fontSize: 14,
               color: user?.scheduleKnowledgeId ? '#000' : '#999'
             }}>
-              <Text copyable={!!user?.scheduleKnowledgeId}>
-                {user?.scheduleKnowledgeId || 'Chưa thiết lập lịch học'}
+              <Text copyable={!!user?.scheduleKnowledgesId}>
+                {user?.scheduleKnowledgesId || 'Chưa thiết lập lịch học'}
               </Text>
             </div>
           </div>

@@ -34,6 +34,7 @@ export async function editKnowledge(knowledgeId: string, content: string) {
 }
 
 export async function deleteKnowledge(knowledgeId: string) {
+  console.log('🔍 Deleting knowledge:', knowledgeId);
   const res = await api.delete(`/knowledges/${knowledgeId}`);
   return res.data;
 }

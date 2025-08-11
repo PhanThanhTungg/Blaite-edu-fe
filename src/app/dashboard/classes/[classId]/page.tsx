@@ -233,22 +233,7 @@ export default function ClassDetailPage() {
                     <Text type="secondary">Questions</Text>
                   </div>
                 </Col>
-                {/* <Col xs={12} sm={6}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#faad14' }}>
-                      {(() => {
-                        const allQuestions = topics.flatMap((topic: any) => 
-                          topic.knowledges?.flatMap((k: any) => k.questions || []) || []
-                        );
-                        const scoredQuestions = allQuestions.filter((q: any) => q.score !== null && q.score !== undefined);
-                        return scoredQuestions.length > 0 
-                          ? Math.round(scoredQuestions.reduce((sum: number, q: any) => sum + q.score, 0) / scoredQuestions.length)
-                          : 0;
-                      })()}%
-                    </div>
-                    <Text type="secondary">Avg Score</Text>
-                  </div>
-                </Col> */}
+                
               </Row>
             </Card>
           )}

@@ -9,3 +9,12 @@ export async function setScheduleKnowledge(knowledgeId: string) {
   const res = await api.post('/schedule/schedule-knowledgeId', { knowledgeId });
   return res.data;
 }
+
+export interface ScheduleTypeQuestion {
+  typeQuestion: "theory" | "practice";
+}
+
+export async function setScheduleTypeQuestion(typeQuestion: ScheduleTypeQuestion) {
+  const res = await api.post('/schedule/schedule-type-question', { typeQuestion });
+  return res.data;
+}

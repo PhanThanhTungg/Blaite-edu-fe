@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Input, Tree, Card, Typography, Button, Tooltip } from 'antd';
+import { Input, Tree, Card, Typography, Button, Tooltip, Tag } from 'antd';
 import type { TreeDataNode } from 'antd';
-import { SearchOutlined, BookOutlined, FileTextOutlined } from '@ant-design/icons';
+import { SearchOutlined, BookOutlined, FileTextOutlined, RobotOutlined } from '@ant-design/icons';
 
 const { Search } = Input;
 const { Text } = Typography;
@@ -22,6 +22,7 @@ interface KnowledgeTreeProps {
   className?: string;
   selectedKeys?: React.Key[];
   onExpandChange?: (expandedKeys: React.Key[]) => void;
+  botKnowledgeId?: string | null;
 }
 
 const KnowledgeTree: React.FC<KnowledgeTreeProps> = ({ 
@@ -29,7 +30,8 @@ const KnowledgeTree: React.FC<KnowledgeTreeProps> = ({
   onSelect, 
   className = "",
   selectedKeys = [],
-  onExpandChange
+  onExpandChange,
+  botKnowledgeId
 }) => {
   const [expandedKeys, setExpandedKeys] = useState<React.Key[]>([]);
   const [searchValue, setSearchValue] = useState('');
@@ -42,15 +44,39 @@ const KnowledgeTree: React.FC<KnowledgeTreeProps> = ({
     return [];
   };
 
+  // Check if knowledge is a leaf node (no children)
+  const isLeafNode = (knowledge: Knowledge) => {
+    return !knowledge.children || knowledge.children.length === 0;
+  };
+
   // Convert knowledge data to tree format
   const convertToTreeData = (knowledgeList: Knowledge[]): TreeDataNode[] => {
     return knowledgeList.map((knowledge) => {
       const hasChildren = knowledge.children && knowledge.children.length > 0;
       const hasTheory = knowledge.theory && knowledge.theory.length > 0;
+      const isBotKnowledge = botKnowledgeId === knowledge.id;
+      const isLeaf = isLeafNode(knowledge);
       
       const title = (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <span>{knowledge.name}</span>
+          <span 
+            style={{ 
+              color: isBotKnowledge && isLeaf ? '#52c41a' : 'inherit',
+              fontWeight: isBotKnowledge && isLeaf ? 'bold' : 'normal'
+            }}
+          >
+            {knowledge.name}
+          </span>
+          {isBotKnowledge && isLeaf && (
+            <Tag 
+              icon={<RobotOutlined />} 
+              color="success" 
+              // size="small"
+              style={{ fontSize: '10px', marginLeft: '8px' }}
+            >
+              Bot
+            </Tag>
+          )}
         </div>
       );
       
@@ -65,10 +91,10 @@ const KnowledgeTree: React.FC<KnowledgeTreeProps> = ({
               // No longer adding theory nodes as children - using tabs instead
       
              return {
-         title,
-         key: knowledge.id,
-         children: children.length > 0 ? children : undefined,
-       };
+        title,
+        key: knowledge.id,
+        children: children.length > 0 ? children : undefined,
+      };
     });
   };
 
@@ -76,7 +102,7 @@ const KnowledgeTree: React.FC<KnowledgeTreeProps> = ({
     const data = convertToTreeData(knowledges);
     console.log('🔍 Tree data created:', data);
     return data;
-  }, [knowledges]);
+  }, [knowledges, botKnowledgeId]);
   
   // Initialize expanded keys for nodes with theory
   React.useEffect(() => {
