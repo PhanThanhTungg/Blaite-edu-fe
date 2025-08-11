@@ -10,7 +10,7 @@ import { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App, ConfigProvider } from "antd";
 import UserBootstrap from "@/components/features/user/UserBootstrap";
-
+import { ToastContainer } from 'react-toastify';
 export const metadata: Metadata = {
   title: "AStudy - AI-Powered Learning Platform",
   description:
@@ -21,6 +21,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" className="">
       <body>
+        <ToastContainer />
         <ClerkProvider>
           <ConfigProvider>
             <AntdRegistry>

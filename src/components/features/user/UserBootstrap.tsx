@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect } from "react";
-import { getUser } from "@/services/auth.service";
+import { useUser } from "@/contexts/UserContext";
 
 export default function UserBootstrap() {
+  const { refreshUser } = useUser();
+
   useEffect(() => {
-    getUser().catch(() => {});
+    // UserContext đã tự động gọi refreshUser() khi mount
+    // Không cần gọi lại ở đây
   }, []);
+
   return null;
 }

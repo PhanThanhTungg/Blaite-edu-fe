@@ -18,7 +18,7 @@ export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
   // Handle menu clicks
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     if (e.key === 'teleSetup') {
-      router.push('/tele');
+      router.push('/dashboard/tele');
     } else if (e.key === 'darkMode') {
       message.info('Dark Mode - Chức năng đang phát triển');
       // TODO: Implement dark mode toggle
