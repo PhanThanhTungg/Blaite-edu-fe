@@ -273,6 +273,7 @@ export default function TopicDetailPage() {
     setIsSubmittingTheoryAnswer(true);
     try {
       const result = await submitQuestionAnswer(theoryQuestion.id, theoryAnswer);
+      console.log('🔍 Theory API Response:', result); // Debug log
       setSubmittedTheoryResult(result);
       message.success('Answer submitted successfully!');
     } catch (error) {
@@ -304,6 +305,7 @@ export default function TopicDetailPage() {
     setIsSubmittingPracticeAnswer(true);
     try {
       const result = await submitQuestionAnswer(practiceQuestion.id, practiceAnswer);
+      console.log('🔍 Practice API Response:', result); // Debug log
       setSubmittedPracticeResult(result);
       message.success('Answer submitted successfully!');
     } catch (error) {
@@ -311,6 +313,19 @@ export default function TopicDetailPage() {
       console.error('Error submitting answer:', error);
     }
     setIsSubmittingPracticeAnswer(false);
+  };
+
+  // Reset functions để gen câu hỏi mới
+  const handleResetTheoryQuestion = () => {
+    setTheoryQuestion(null);
+    setTheoryAnswer('');
+    setSubmittedTheoryResult(null);
+  };
+
+  const handleResetPracticeQuestion = () => {
+    setPracticeQuestion(null);
+    setPracticeAnswer('');
+    setSubmittedPracticeResult(null);
   };
 
   if (error) {
@@ -652,38 +667,54 @@ export default function TopicDetailPage() {
                                   <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
                                     <div style={{ marginBottom: '16px' }}>
                                       <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
-                                        📊 Your Score: {submittedTheoryResult.score}/10
+                                        📊 Your Score: {submittedTheoryResult.score}/100
                                       </Text>
                                     </div>
 
-                                    <div style={{ marginBottom: '12px' }}>
-                                      <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
-                                        📝 Explanation:
-                                      </Text>
-                                      <div style={{
-                                        padding: '12px',
-                                        backgroundColor: '#fff7e6',
-                                        border: '1px solid #ffd591',
-                                        borderRadius: '6px',
-                                        lineHeight: '1.6'
-                                      }}>
-                                        {submittedTheoryResult.explanation}
+                                    {submittedTheoryResult.explain && (
+                                      <div style={{ marginBottom: '12px' }}>
+                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
+                                          📝 Explanation:
+                                        </Text>
+                                        <div style={{
+                                          padding: '12px',
+                                          backgroundColor: '#fff7e6',
+                                          border: '1px solid #ffd591',
+                                          borderRadius: '6px',
+                                          lineHeight: '1.6'
+                                        }}>
+                                          {submittedTheoryResult.explain}
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
 
-                                    <div>
-                                      <Text strong style={{ display: 'block', marginBottom: '8px', color: '#52c41a' }}>
-                                        💡 Feedback:
-                                      </Text>
-                                      <div style={{
-                                        padding: '12px',
-                                        backgroundColor: '#f6ffed',
-                                        border: '1px solid #b7eb8f',
-                                        borderRadius: '6px',
-                                        lineHeight: '1.6'
-                                      }}>
-                                        {submittedTheoryResult.feedback}
+                                    {submittedTheoryResult.aiFeedback && (
+                                      <div style={{ marginBottom: '16px' }}>
+                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#52c41a' }}>
+                                          💡 AI Feedback:
+                                        </Text>
+                                        <div style={{
+                                          padding: '12px',
+                                          backgroundColor: '#f6ffed',
+                                          border: '1px solid #b7eb8f',
+                                          borderRadius: '6px',
+                                          lineHeight: '1.6'
+                                        }}>
+                                          {submittedTheoryResult.aiFeedback}
+                                        </div>
                                       </div>
+                                    )}
+
+                                    {/* Generate New Question Button */}
+                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                      <Button
+                                        type="primary"
+                                        icon={<FileTextOutlined />}
+                                        onClick={handleResetTheoryQuestion}
+                                        size="large"
+                                      >
+                                        Generate New Theory Question
+                                      </Button>
                                     </div>
                                   </div>
                                 )}
@@ -758,38 +789,37 @@ export default function TopicDetailPage() {
                                   <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
                                     <div style={{ marginBottom: '16px' }}>
                                       <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
-                                        📊 Your Score: {submittedPracticeResult.score}/10
+                                        📊 Your Score: {submittedPracticeResult.score}/100
                                       </Text>
                                     </div>
 
-                                    <div style={{ marginBottom: '12px' }}>
-                                      <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
-                                        📝 Explanation:
-                                      </Text>
-                                      <div style={{
-                                        padding: '12px',
-                                        backgroundColor: '#fff7e6',
-                                        border: '1px solid #ffd591',
-                                        borderRadius: '6px',
-                                        lineHeight: '1.6'
-                                      }}>
-                                        {submittedPracticeResult.explanation}
+                                    {submittedPracticeResult.explain && (
+                                      <div style={{ marginBottom: '16px' }}>
+                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
+                                          📝 Explanation:
+                                        </Text>
+                                        <div style={{
+                                          padding: '12px',
+                                          backgroundColor: '#fff7e6',
+                                          border: '1px solid #ffd591',
+                                          borderRadius: '6px',
+                                          lineHeight: '1.6'
+                                        }}>
+                                          {submittedPracticeResult.explain}
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
 
-                                    <div>
-                                      <Text strong style={{ display: 'block', marginBottom: '8px', color: '#52c41a' }}>
-                                        💡 Feedback:
-                                      </Text>
-                                      <div style={{
-                                        padding: '12px',
-                                        backgroundColor: '#f6ffed',
-                                        border: '1px solid #b7eb8f',
-                                        borderRadius: '6px',
-                                        lineHeight: '1.6'
-                                      }}>
-                                        {submittedPracticeResult.feedback}
-                                      </div>
+                                    {/* Generate New Question Button */}
+                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                      <Button
+                                        type="primary"
+                                        icon={<FileTextOutlined />}
+                                        onClick={handleResetPracticeQuestion}
+                                        size="large"
+                                      >
+                                        Generate New Practice Question
+                                      </Button>
                                     </div>
                                   </div>
                                 )}

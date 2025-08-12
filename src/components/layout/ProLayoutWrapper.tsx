@@ -6,6 +6,7 @@ import { UserButton } from '@clerk/nextjs'
 import { Dropdown, Button, message } from 'antd'
 import { DownOutlined, SettingOutlined, BulbOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
+import { useEffect } from 'react'
 
 interface ProLayoutWrapperProps {
   children: React.ReactNode
@@ -14,6 +15,46 @@ interface ProLayoutWrapperProps {
 export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
   const pathname = usePathname()
   const router = useRouter()
+
+  // Add click handler to title after component mounts
+  useEffect(() => {
+    let titleElement = null;
+    let clickHandler = null;
+    
+    // Wait for DOM to be ready then find title element
+    const timer = setTimeout(() => {
+      // Try multiple possible selectors for the title
+      const selectors = [
+        '.ant-pro-layout-page-header-title',
+        '.ant-pro-layout-page-header .ant-typography',
+        '.ant-pro-layout-header .ant-pro-layout-header-content .ant-pro-layout-header-title',
+        '[class*="title"]',
+        'h1'
+      ];
+      
+      for (const selector of selectors) {
+        titleElement = document.querySelector(selector);
+        if (titleElement && titleElement.textContent?.includes('AStudy')) {
+          break;
+        }
+      }
+      
+      if (titleElement) {
+        titleElement.style.cursor = 'pointer';
+        clickHandler = () => {
+          router.push('/dashboard');
+        };
+        titleElement.addEventListener('click', clickHandler);
+      }
+    }, 100);
+    
+    return () => {
+      clearTimeout(timer);
+      if (titleElement && clickHandler) {
+        titleElement.removeEventListener('click', clickHandler);
+      }
+    };
+  }, [router, pathname]);
 
   // Handle menu clicks
   const handleMenuClick: MenuProps['onClick'] = (e) => {
