@@ -9,9 +9,7 @@ import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutli
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
 import { getKnowledges, generateKnowledge, getKnowledgeDetail, deleteKnowledge, generateTheory } from '@/services/knowledge.service';
-import { generateTheoryQuestion } from '@/services/question.service';
-import { generatePracticeQuestion } from '@/services/question.service';
-import { submitQuestionAnswer } from '@/services/question.service';
+import { generateTheoryQuestion, generatePracticeQuestion, submitQuestionAnswer, getQuestionsOfKnowledge } from '@/services/question.service';
 import { getClass } from '@/services/class.service';
 import { setScheduleKnowledge } from '@/services/bot.service';
 import EditTopicModal from '@/components/features/topic/EditTopicModal';
@@ -21,6 +19,7 @@ import CreateKnowledgeModal from '@/components/features/knowledge/CreateKnowledg
 import EditKnowledgeModal from '@/components/features/knowledge/EditKnowledgeModal';
 import DeleteKnowledgeModal from '@/components/features/knowledge/DeleteKnowledgeModal';
 import KnowledgeTree from '@/components/features/knowledge/KnowledgeTree';
+import ErrorModal from '@/components/ui/ErrorModal';
 
 const { Title, Text, Paragraph } = Typography
 
@@ -62,6 +61,13 @@ export default function TopicDetailPage() {
   const [submittedPracticeResult, setSubmittedPracticeResult] = useState<any>(null)
   const [selectedTreeKeys, setSelectedTreeKeys] = useState<React.Key[]>([])
   const [isCreatingKnowledge, setIsCreatingKnowledge] = useState(false)
+  const [theoryQuestionsHistory, setTheoryQuestionsHistory] = useState<any[]>([])
+  const [practiceQuestionsHistory, setPracticeQuestionsHistory] = useState<any[]>([])
+  const [expandedTheoryQuestions, setExpandedTheoryQuestions] = useState<Set<string>>(new Set())
+  const [expandedPracticeQuestions, setExpandedPracticeQuestions] = useState<Set<string>>(new Set())
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [errorModalOpen, setErrorModalOpen] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
   // State cho bot knowledge
   const [isSettingBotKnowledge, setIsSettingBotKnowledge] = useState(false)
@@ -197,6 +203,56 @@ export default function TopicDetailPage() {
     generateTheoryMutation.mutate(selectedKnowledgeForTree.id)
   }
 
+  // Load questions history
+  const loadQuestionsHistory = async (knowledgeId: string, type: 'theory' | 'practice') => {
+    setIsLoadingHistory(true)
+    try {
+      const questions = await getQuestionsOfKnowledge(knowledgeId, type)
+      if (type === 'theory') {
+        setTheoryQuestionsHistory(questions)
+      } else {
+        setPracticeQuestionsHistory(questions)
+      }
+    } catch (error) {
+      console.error('Error loading questions history:', error)
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  // Toggle expand/collapse for theory questions
+  const toggleTheoryQuestionExpansion = (questionId: string) => {
+    setExpandedTheoryQuestions(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId)
+      } else {
+        newSet.add(questionId)
+      }
+      return newSet
+    })
+  }
+
+  // Toggle expand/collapse for practice questions
+  const togglePracticeQuestionExpansion = (questionId: string) => {
+    setExpandedPracticeQuestions(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId)
+      } else {
+        newSet.add(questionId)
+      }
+      return newSet
+    })
+  }
+
+  // Helper function to show error modal
+  const showErrorModal = (error: any, defaultMessage: string) => {
+    const errorMessage = error.response?.data?.message || error.message || defaultMessage
+    setErrorMessage(errorMessage)
+    setErrorModalOpen(true)
+  }
+
 
   const handleDeleteKnowledge = (knowledgeId: string) => {
     // Recursive function to find knowledge in the tree (including children)
@@ -229,6 +285,8 @@ export default function TopicDetailPage() {
     setSubmittedTheoryResult(null);
     setSubmittedPracticeResult(null);
     setActiveTab('overview');
+    setTheoryQuestionsHistory([]);
+    setPracticeQuestionsHistory([]);
 
     setSelectedKnowledgeForTree(knowledge);
     setSelectedTreeKeys([knowledge.id]);
@@ -245,8 +303,8 @@ export default function TopicDetailPage() {
       const question = await generateTheoryQuestion(selectedKnowledgeForTree.id);
       setTheoryQuestion(question);
       message.success('Theory exercise generated successfully!');
-    } catch (error) {
-      message.error('Failed to generate theory exercise');
+    } catch (error: any) {
+      showErrorModal(error, 'Failed to generate theory exercise');
       console.error('Error generating theory question:', error);
     }
     setIsGeneratingTheoryQuestion(false);
@@ -263,9 +321,20 @@ export default function TopicDetailPage() {
       const result = await submitQuestionAnswer(theoryQuestion.id, theoryAnswer);
       console.log('🔍 Theory API Response:', result); // Debug log
       setSubmittedTheoryResult(result);
+      
+      // Tự động thêm câu hỏi đã trả lời vào lịch sử
+      const answeredQuestion = {
+        ...theoryQuestion,
+        answer: theoryAnswer,
+        score: result.score,
+        explain: result.explain,
+        aiFeedback: result.aiFeedback
+      };
+      setTheoryQuestionsHistory(prev => [answeredQuestion, ...prev]);
+      
       message.success('Answer submitted successfully!');
-    } catch (error) {
-      message.error('Failed to submit answer');
+    } catch (error: any) {
+      showErrorModal(error, 'Failed to submit answer');
       console.error('Error submitting answer:', error);
     }
     setIsSubmittingTheoryAnswer(false);
@@ -277,8 +346,8 @@ export default function TopicDetailPage() {
       const question = await generatePracticeQuestion(selectedKnowledgeForTree.id);
       setPracticeQuestion(question);
       message.success('Practice exercise generated successfully!');
-    } catch (error) {
-      message.error('Failed to generate practice exercise');
+    } catch (error: any) {
+      showErrorModal(error, 'Failed to generate practice exercise');
       console.error('Error generating practice question:', error);
     }
     setIsGeneratingPracticeQuestion(false);
@@ -295,9 +364,20 @@ export default function TopicDetailPage() {
       const result = await submitQuestionAnswer(practiceQuestion.id, practiceAnswer);
       console.log('🔍 Practice API Response:', result); // Debug log
       setSubmittedPracticeResult(result);
+      
+      // Tự động thêm câu hỏi đã trả lời vào lịch sử
+      const answeredQuestion = {
+        ...practiceQuestion,
+        answer: practiceAnswer,
+        score: result.score,
+        explain: result.explain,
+        aiFeedback: result.aiFeedback
+      };
+      setPracticeQuestionsHistory(prev => [answeredQuestion, ...prev]);
+      
       message.success('Answer submitted successfully!');
-    } catch (error) {
-      message.error('Failed to submit answer');
+    } catch (error: any) {
+      showErrorModal(error, 'Failed to submit answer');
       console.error('Error submitting answer:', error);
     }
     setIsSubmittingPracticeAnswer(false);
@@ -399,7 +479,14 @@ export default function TopicDetailPage() {
               <Card size="small">
                 <Tabs
                   activeKey={activeTab}
-                  onChange={setActiveTab}
+                  onChange={(key) => {
+                    setActiveTab(key)
+                    // Auto load questions history when switching to exercise tabs
+                    if (selectedKnowledgeForTree && (key === 'theory-exercise' || key === 'practice-exercise')) {
+                      const type = key === 'theory-exercise' ? 'theory' : 'practice'
+                      loadQuestionsHistory(selectedKnowledgeForTree.id, type)
+                    }
+                  }}
                   items={[
                     {
                       key: 'overview',
@@ -629,6 +716,85 @@ export default function TopicDetailPage() {
                         ),
                         children: (
                           <div>
+                            {/* Questions History Section */}
+                            <div style={{ marginBottom: '24px' }}>
+                              <div style={{ marginBottom: '12px' }}>
+                                <Text strong>📚 Questions History</Text>
+                              </div>
+                              {theoryQuestionsHistory.length > 0 ? (
+                                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                  {theoryQuestionsHistory.map((q, index) => {
+                                    const isExpanded = expandedTheoryQuestions.has(q.id || index.toString())
+                                    return (
+                                      <div key={q.id || index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                        {/* Compact view */}
+                                        <div 
+                                          style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            padding: '4px 0'
+                                          }}
+                                          onDoubleClick={() => toggleTheoryQuestionExpansion(q.id || index.toString())}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
+                                              Question {index + 1}
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                                              {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
+                                            </Text>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {q.score !== undefined && (
+                                              <Text style={{ 
+                                                fontSize: '12px', 
+                                                fontWeight: 'bold',
+                                                color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
+                                              }}>
+                                                {q.score}/100
+                                              </Text>
+                                            )}
+                                            <Text type="secondary" style={{ fontSize: '10px' }}>
+                                              {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
+                                            </Text>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Expanded view */}
+                                        {isExpanded && (
+                                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                            <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
+                                            {q.answer && (
+                                              <div style={{ marginBottom: '4px' }}>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
+                                              </div>
+                                            )}
+                                            {q.explain && (
+                                              <div style={{ marginBottom: '4px' }}>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
+                                              </div>
+                                            )}
+                                            {q.aiFeedback && (
+                                              <div>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <Text type="secondary" style={{ fontSize: '12px' }}>No questions history yet</Text>
+                              )}
+                            </div>
+
                             {!theoryQuestion && (
                               <div style={{ textAlign: 'center', padding: '24px 0' }}>
                                 <Button
@@ -751,6 +917,85 @@ export default function TopicDetailPage() {
                         ),
                         children: (
                           <div>
+                            {/* Questions History Section */}
+                            <div style={{ marginBottom: '24px' }}>
+                              <div style={{ marginBottom: '12px' }}>
+                                <Text strong>📚 Questions History</Text>
+                              </div>
+                              {practiceQuestionsHistory.length > 0 ? (
+                                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                  {practiceQuestionsHistory.map((q, index) => {
+                                    const isExpanded = expandedPracticeQuestions.has(q.id || index.toString())
+                                    return (
+                                      <div key={q.id || index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                        {/* Compact view */}
+                                        <div 
+                                          style={{ 
+                                            display: 'flex', 
+                                            justifyContent: 'space-between', 
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            padding: '4px 0'
+                                          }}
+                                          onDoubleClick={() => togglePracticeQuestionExpansion(q.id || index.toString())}
+                                        >
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                            <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
+                                              Question {index + 1}
+                                            </Text>
+                                            <Text type="secondary" style={{ fontSize: '11px' }}>
+                                              {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
+                                            </Text>
+                                          </div>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            {q.score !== undefined && (
+                                              <Text style={{ 
+                                                fontSize: '12px', 
+                                                fontWeight: 'bold',
+                                                color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
+                                              }}>
+                                                {q.score}/100
+                                              </Text>
+                                            )}
+                                            <Text type="secondary" style={{ fontSize: '10px' }}>
+                                              {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
+                                            </Text>
+                                          </div>
+                                        </div>
+                                        
+                                        {/* Expanded view */}
+                                        {isExpanded && (
+                                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                            <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
+                                            {q.answer && (
+                                              <div style={{ marginBottom: '4px' }}>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
+                                              </div>
+                                            )}
+                                            {q.explain && (
+                                              <div style={{ marginBottom: '4px' }}>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
+                                              </div>
+                                            )}
+                                            {q.aiFeedback && (
+                                              <div>
+                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
+                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <Text type="secondary" style={{ fontSize: '12px' }}>No questions history yet</Text>
+                              )}
+                            </div>
+
                             {!practiceQuestion && (
                               <div style={{ textAlign: 'center', padding: '24px 0' }}>
                                 <Button
@@ -936,8 +1181,15 @@ export default function TopicDetailPage() {
            }
            // Refetch knowledges data
            queryClient.refetchQueries({ queryKey: ['topic-knowledges', topicId] })
-         }}
-       />
+         }        }
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        open={errorModalOpen}
+        message={errorMessage}
+        onClose={() => setErrorModalOpen(false)}
+      />
     </>
   )
-} 
+}

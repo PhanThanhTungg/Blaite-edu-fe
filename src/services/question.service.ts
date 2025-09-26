@@ -48,7 +48,6 @@ export async function generatePracticeQuestion(knowledgeId: string) {
   }
 }
 
-
 export async function generateTheoryQuestion(knowledgeId: string) {
   try {
     const res = await api.post(`/questions/knowledge/${knowledgeId}/generate/theory`);
@@ -65,4 +64,9 @@ export async function generateTheoryQuestion(knowledgeId: string) {
     }
     throw error;
   }
+}
+
+export async function getQuestionsOfKnowledge(knowledgeId: string, typeQuestion: 'theory' | 'practice') {
+  const res = await api.get(`/questions/knowledge/${knowledgeId}/${typeQuestion}`);
+  return res.data;
 }
