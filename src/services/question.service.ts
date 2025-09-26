@@ -70,3 +70,8 @@ export async function getQuestionsOfKnowledge(knowledgeId: string, typeQuestion:
   const res = await api.get(`/questions/knowledge/${knowledgeId}/${typeQuestion}`);
   return res.data;
 }
+
+export async function getLatestUnansweredQuestion(topicId: string) {
+  const res = await api.get(`/questions/topic/${topicId}/latest-unanswered`);
+  return res.data;
+}

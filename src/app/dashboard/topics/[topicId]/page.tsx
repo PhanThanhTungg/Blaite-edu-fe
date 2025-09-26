@@ -4,12 +4,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageContainer } from '@ant-design/pro-components'
-import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, message, theme } from 'antd'
+import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, message, theme, Pagination, Select, Space } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
 import { getKnowledges, generateKnowledge, getKnowledgeDetail, deleteKnowledge, generateTheory } from '@/services/knowledge.service';
-import { generateTheoryQuestion, generatePracticeQuestion, submitQuestionAnswer, getQuestionsOfKnowledge } from '@/services/question.service';
+import { generateTheoryQuestion, generatePracticeQuestion, submitQuestionAnswer, getQuestionsOfKnowledge, getLatestUnansweredQuestion } from '@/services/question.service';
 import { getClass } from '@/services/class.service';
 import { setScheduleKnowledge } from '@/services/bot.service';
 import EditTopicModal from '@/components/features/topic/EditTopicModal';
@@ -68,6 +68,16 @@ export default function TopicDetailPage() {
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [errorModalOpen, setErrorModalOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [theoryPageSize, setTheoryPageSize] = useState(4)
+  const [theoryCurrentPage, setTheoryCurrentPage] = useState(1)
+  const [practicePageSize, setPracticePageSize] = useState(4)
+  const [practiceCurrentPage, setPracticeCurrentPage] = useState(1)
+  const [theorySortBy, setTheorySortBy] = useState<'createdAt' | 'score'>('createdAt')
+  const [theorySortOrder, setTheorySortOrder] = useState<'asc' | 'desc'>('desc')
+  const [practiceSortBy, setPracticeSortBy] = useState<'createdAt' | 'score'>('createdAt')
+  const [practiceSortOrder, setPracticeSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [isTheoryQuestionUnanswered, setIsTheoryQuestionUnanswered] = useState(false)
+  const [isPracticeQuestionUnanswered, setIsPracticeQuestionUnanswered] = useState(false)
 
   // State cho bot knowledge
   const [isSettingBotKnowledge, setIsSettingBotKnowledge] = useState(false)
@@ -253,6 +263,59 @@ export default function TopicDetailPage() {
     setErrorModalOpen(true)
   }
 
+  // Sort and pagination logic for theory questions
+  const getTheoryPaginatedQuestions = () => {
+    // Sort questions first
+    const sortedQuestions = [...theoryQuestionsHistory].sort((a, b) => {
+      if (theorySortBy === 'createdAt') {
+        const dateA = new Date(a.createdAt || 0).getTime()
+        const dateB = new Date(b.createdAt || 0).getTime()
+        return theorySortOrder === 'asc' ? dateA - dateB : dateB - dateA
+      } else if (theorySortBy === 'score') {
+        const scoreA = a.score !== undefined ? a.score : -1
+        const scoreB = b.score !== undefined ? b.score : -1
+        return theorySortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA
+      }
+      return 0
+    })
+    
+    // Then paginate
+    const startIndex = (theoryCurrentPage - 1) * theoryPageSize
+    const endIndex = startIndex + theoryPageSize
+    return sortedQuestions.slice(startIndex, endIndex)
+  }
+
+  // Sort and pagination logic for practice questions
+  const getPracticePaginatedQuestions = () => {
+    // Sort questions first
+    const sortedQuestions = [...practiceQuestionsHistory].sort((a, b) => {
+      if (practiceSortBy === 'createdAt') {
+        const dateA = new Date(a.createdAt || 0).getTime()
+        const dateB = new Date(b.createdAt || 0).getTime()
+        return practiceSortOrder === 'asc' ? dateA - dateB : dateB - dateA
+      } else if (practiceSortBy === 'score') {
+        const scoreA = a.score !== undefined ? a.score : -1
+        const scoreB = b.score !== undefined ? b.score : -1
+        return practiceSortOrder === 'asc' ? scoreA - scoreB : scoreB - scoreA
+      }
+      return 0
+    })
+    
+    // Then paginate
+    const startIndex = (practiceCurrentPage - 1) * practicePageSize
+    const endIndex = startIndex + practicePageSize
+    return sortedQuestions.slice(startIndex, endIndex)
+  }
+
+  // Reset pagination when questions history changes
+  const resetTheoryPagination = () => {
+    setTheoryCurrentPage(1)
+  }
+
+  const resetPracticePagination = () => {
+    setPracticeCurrentPage(1)
+  }
+
 
   const handleDeleteKnowledge = (knowledgeId: string) => {
     // Recursive function to find knowledge in the tree (including children)
@@ -287,6 +350,8 @@ export default function TopicDetailPage() {
     setActiveTab('overview');
     setTheoryQuestionsHistory([]);
     setPracticeQuestionsHistory([]);
+    setIsTheoryQuestionUnanswered(false);
+    setIsPracticeQuestionUnanswered(false);
 
     setSelectedKnowledgeForTree(knowledge);
     setSelectedTreeKeys([knowledge.id]);
@@ -302,12 +367,32 @@ export default function TopicDetailPage() {
     try {
       const question = await generateTheoryQuestion(selectedKnowledgeForTree.id);
       setTheoryQuestion(question);
+      setIsTheoryQuestionUnanswered(false); // Reset unanswered flag for new question
       message.success('Theory exercise generated successfully!');
     } catch (error: any) {
       showErrorModal(error, 'Failed to generate theory exercise');
       console.error('Error generating theory question:', error);
     }
     setIsGeneratingTheoryQuestion(false);
+  };
+
+  // Load unanswered question for theory tab
+  const loadUnansweredTheoryQuestion = async () => {
+    if (!topicId) return;
+    
+    try {
+      const question = await getLatestUnansweredQuestion(topicId);
+      if (question && question.id) {
+        setTheoryQuestion(question);
+        setIsTheoryQuestionUnanswered(true);
+        console.log('🔍 Loaded unanswered question for theory tab:', question);
+      }
+    } catch (error: any) {
+      // If no unanswered question found, don't show error
+      if (error.response?.status !== 404) {
+        console.error('Error loading unanswered question for theory tab:', error);
+      }
+    }
   };
 
   const handleSubmitTheoryAnswer = async () => {
@@ -331,6 +416,7 @@ export default function TopicDetailPage() {
         aiFeedback: result.aiFeedback
       };
       setTheoryQuestionsHistory(prev => [answeredQuestion, ...prev]);
+      resetTheoryPagination(); // Reset về trang 1 khi có câu hỏi mới
       
       message.success('Answer submitted successfully!');
     } catch (error: any) {
@@ -345,12 +431,32 @@ export default function TopicDetailPage() {
     try {
       const question = await generatePracticeQuestion(selectedKnowledgeForTree.id);
       setPracticeQuestion(question);
+      setIsPracticeQuestionUnanswered(false); // Reset unanswered flag for new question
       message.success('Practice exercise generated successfully!');
     } catch (error: any) {
       showErrorModal(error, 'Failed to generate practice exercise');
       console.error('Error generating practice question:', error);
     }
     setIsGeneratingPracticeQuestion(false);
+  };
+
+  // Load unanswered question for practice tab
+  const loadUnansweredPracticeQuestion = async () => {
+    if (!topicId) return;
+    
+    try {
+      const question = await getLatestUnansweredQuestion(topicId);
+      if (question && question.id) {
+        setPracticeQuestion(question);
+        setIsPracticeQuestionUnanswered(true);
+        console.log('🔍 Loaded unanswered question for practice tab:', question);
+      }
+    } catch (error: any) {
+      // If no unanswered question found, don't show error
+      if (error.response?.status !== 404) {
+        console.error('Error loading unanswered question for practice tab:', error);
+      }
+    }
   };
 
   const handleSubmitPracticeAnswer = async () => {
@@ -374,6 +480,7 @@ export default function TopicDetailPage() {
         aiFeedback: result.aiFeedback
       };
       setPracticeQuestionsHistory(prev => [answeredQuestion, ...prev]);
+      resetPracticePagination(); // Reset về trang 1 khi có câu hỏi mới
       
       message.success('Answer submitted successfully!');
     } catch (error: any) {
@@ -388,12 +495,14 @@ export default function TopicDetailPage() {
     setTheoryQuestion(null);
     setTheoryAnswer('');
     setSubmittedTheoryResult(null);
+    setIsTheoryQuestionUnanswered(false);
   };
 
   const handleResetPracticeQuestion = () => {
     setPracticeQuestion(null);
     setPracticeAnswer('');
     setSubmittedPracticeResult(null);
+    setIsPracticeQuestionUnanswered(false);
   };
 
   if (error) {
@@ -485,6 +594,13 @@ export default function TopicDetailPage() {
                     if (selectedKnowledgeForTree && (key === 'theory-exercise' || key === 'practice-exercise')) {
                       const type = key === 'theory-exercise' ? 'theory' : 'practice'
                       loadQuestionsHistory(selectedKnowledgeForTree.id, type)
+                    }
+                    
+                    // Auto load unanswered question from topic if no current question
+                    if (key === 'theory-exercise' && !theoryQuestion) {
+                      loadUnansweredTheoryQuestion()
+                    } else if (key === 'practice-exercise' && !practiceQuestion) {
+                      loadUnansweredPracticeQuestion()
                     }
                   }}
                   items={[
@@ -718,78 +834,139 @@ export default function TopicDetailPage() {
                           <div>
                             {/* Questions History Section */}
                             <div style={{ marginBottom: '24px' }}>
-                              <div style={{ marginBottom: '12px' }}>
+                              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Text strong>📚 Questions History</Text>
+                                <Space>
+                                  <Text type="secondary" style={{ fontSize: '12px' }}>Sort by:</Text>
+                                  <Select
+                                    value={theorySortBy}
+                                    onChange={(value) => setTheorySortBy(value)}
+                                    style={{ width: 120 }}
+                                    size="small"
+                                    options={[
+                                      { label: 'Time', value: 'createdAt' },
+                                      { label: 'Score', value: 'score' }
+                                    ]}
+                                  />
+                                  <Select
+                                    value={theorySortOrder}
+                                    onChange={(value) => setTheorySortOrder(value)}
+                                    style={{ width: 80 }}
+                                    size="small"
+                                    options={[
+                                      { label: '↑', value: 'asc' },
+                                      { label: '↓', value: 'desc' }
+                                    ]}
+                                  />
+                                </Space>
                               </div>
                               {theoryQuestionsHistory.length > 0 ? (
-                                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
-                                  {theoryQuestionsHistory.map((q, index) => {
-                                    const isExpanded = expandedTheoryQuestions.has(q.id || index.toString())
-                                    return (
-                                      <div key={q.id || index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
-                                        {/* Compact view */}
-                                        <div 
-                                          style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center',
-                                            cursor: 'pointer',
-                                            padding: '4px 0'
-                                          }}
-                                          onDoubleClick={() => toggleTheoryQuestionExpansion(q.id || index.toString())}
-                                        >
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
-                                              Question {index + 1}
-                                            </Text>
-                                            <Text type="secondary" style={{ fontSize: '11px' }}>
-                                              {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
-                                            </Text>
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {q.score !== undefined && (
-                                              <Text style={{ 
-                                                fontSize: '12px', 
-                                                fontWeight: 'bold',
-                                                color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
-                                              }}>
-                                                {q.score}/100
+                                <>
+                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                    {getTheoryPaginatedQuestions().map((q, index) => {
+                                      const globalIndex = (theoryCurrentPage - 1) * theoryPageSize + index
+                                      const isExpanded = expandedTheoryQuestions.has(q.id || globalIndex.toString())
+                                      return (
+                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                          {/* Compact view */}
+                                          <div 
+                                            style={{ 
+                                              display: 'flex', 
+                                              justifyContent: 'space-between', 
+                                              alignItems: 'center',
+                                              cursor: 'pointer',
+                                              padding: '4px 0'
+                                            }}
+                                            onDoubleClick={() => toggleTheoryQuestionExpansion(q.id || globalIndex.toString())}
+                                          >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                              <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
+                                                Question {globalIndex + 1}
                                               </Text>
-                                            )}
-                                            <Text type="secondary" style={{ fontSize: '10px' }}>
-                                              {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
-                                            </Text>
+                                              <Text type="secondary" style={{ fontSize: '11px' }}>
+                                                {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
+                                              </Text>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              {q.score !== undefined && (
+                                                <Text style={{ 
+                                                  fontSize: '12px', 
+                                                  fontWeight: 'bold',
+                                                  color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
+                                                }}>
+                                                  {q.score}/100
+                                                </Text>
+                                              )}
+                                              <Text type="secondary" style={{ fontSize: '10px' }}>
+                                                {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
+                                              </Text>
+                                            </div>
                                           </div>
+                                          
+                                          {/* Expanded view */}
+                                          {isExpanded && (
+                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                              <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
+                                              {q.answer && (
+                                                <div style={{ marginBottom: '4px' }}>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
+                                                </div>
+                                              )}
+                                              {q.explain && (
+                                                <div style={{ marginBottom: '4px' }}>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
+                                                </div>
+                                              )}
+                                              {q.aiFeedback && (
+                                                <div>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
-                                        
-                                        {/* Expanded view */}
-                                        {isExpanded && (
-                                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
-                                            <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
-                                            {q.answer && (
-                                              <div style={{ marginBottom: '4px' }}>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
-                                              </div>
-                                            )}
-                                            {q.explain && (
-                                              <div style={{ marginBottom: '4px' }}>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
-                                              </div>
-                                            )}
-                                            {q.aiFeedback && (
-                                              <div>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
+                                      )
+                                    })}
+                                  </div>
+                                  
+                                  {/* Pagination */}
+                                  <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center' }}>
+                                    <Pagination
+                                      current={theoryCurrentPage}
+                                      total={theoryQuestionsHistory.length}
+                                      pageSize={theoryPageSize}
+                                      showSizeChanger
+                                      showQuickJumper
+                                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} questions`}
+                                      pageSizeOptions={['2', '4', '6', '8', '10']}
+                                      onChange={(page, size) => {
+                                        setTheoryCurrentPage(page)
+                                        if (size !== theoryPageSize) {
+                                          setTheoryPageSize(size)
+                                        }
+                                      }}
+                                      onShowSizeChange={(current, size) => {
+                                        setTheoryPageSize(size)
+                                        setTheoryCurrentPage(1)
+                                      }}
+                                      locale={{
+                                        items_per_page: 'items/page',
+                                        jump_to: 'Go to',
+                                        jump_to_confirm: 'Go to page',
+                                        page: 'Page',
+                                        prev_page: 'Previous Page',
+                                        next_page: 'Next Page',
+                                        prev_5: 'Previous 5 Pages',
+                                        next_5: 'Next 5 Pages',
+                                        prev_3: 'Previous 3 Pages',
+                                        next_3: 'Next 3 Pages',
+                                      }}
+                                    />
+                                  </div>
+                                </>
                               ) : (
                                 <Text type="secondary" style={{ fontSize: '12px' }}>No questions history yet</Text>
                               )}
@@ -813,6 +990,25 @@ export default function TopicDetailPage() {
                               <Card
                                 size="small"
                               >
+                                {/* Unanswered Question Indicator */}
+                                {isTheoryQuestionUnanswered && (
+                                  <div style={{ 
+                                    marginBottom: '12px', 
+                                    padding: '8px 12px', 
+                                    backgroundColor: '#fff7e6', 
+                                    border: '1px solid #ffd591', 
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                  }}>
+                                    <span style={{ fontSize: '16px' }}>⏳</span>
+                                    <Text style={{ color: '#d46b08', fontWeight: 'bold', fontSize: '12px' }}>
+                                      This is an unanswered question, please answer it to continue  
+                                    </Text>
+                                  </div>
+                                )}
+                                
                                 <div
                                   style={{
                                     lineHeight: '1.6',
@@ -919,78 +1115,139 @@ export default function TopicDetailPage() {
                           <div>
                             {/* Questions History Section */}
                             <div style={{ marginBottom: '24px' }}>
-                              <div style={{ marginBottom: '12px' }}>
+                              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <Text strong>📚 Questions History</Text>
+                                <Space>
+                                  <Text type="secondary" style={{ fontSize: '12px' }}>Sort by:</Text>
+                                  <Select
+                                    value={practiceSortBy}
+                                    onChange={(value) => setPracticeSortBy(value)}
+                                    style={{ width: 120 }}
+                                    size="small"
+                                    options={[
+                                      { label: 'Time', value: 'createdAt' },
+                                      { label: 'Score', value: 'score' }
+                                    ]}
+                                  />
+                                  <Select
+                                    value={practiceSortOrder}
+                                    onChange={(value) => setPracticeSortOrder(value)}
+                                    style={{ width: 80 }}
+                                    size="small"
+                                    options={[
+                                      { label: '↑', value: 'asc' },
+                                      { label: '↓', value: 'desc' }
+                                    ]}
+                                  />
+                                </Space>
                               </div>
                               {practiceQuestionsHistory.length > 0 ? (
-                                <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
-                                  {practiceQuestionsHistory.map((q, index) => {
-                                    const isExpanded = expandedPracticeQuestions.has(q.id || index.toString())
-                                    return (
-                                      <div key={q.id || index} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
-                                        {/* Compact view */}
-                                        <div 
-                                          style={{ 
-                                            display: 'flex', 
-                                            justifyContent: 'space-between', 
-                                            alignItems: 'center',
-                                            cursor: 'pointer',
-                                            padding: '4px 0'
-                                          }}
-                                          onDoubleClick={() => togglePracticeQuestionExpansion(q.id || index.toString())}
-                                        >
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                            <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
-                                              Question {index + 1}
-                                            </Text>
-                                            <Text type="secondary" style={{ fontSize: '11px' }}>
-                                              {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
-                                            </Text>
-                                          </div>
-                                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                            {q.score !== undefined && (
-                                              <Text style={{ 
-                                                fontSize: '12px', 
-                                                fontWeight: 'bold',
-                                                color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
-                                              }}>
-                                                {q.score}/100
+                                <>
+                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                    {getPracticePaginatedQuestions().map((q, index) => {
+                                      const globalIndex = (practiceCurrentPage - 1) * practicePageSize + index
+                                      const isExpanded = expandedPracticeQuestions.has(q.id || globalIndex.toString())
+                                      return (
+                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                          {/* Compact view */}
+                                          <div 
+                                            style={{ 
+                                              display: 'flex', 
+                                              justifyContent: 'space-between', 
+                                              alignItems: 'center',
+                                              cursor: 'pointer',
+                                              padding: '4px 0'
+                                            }}
+                                            onDoubleClick={() => togglePracticeQuestionExpansion(q.id || globalIndex.toString())}
+                                          >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                              <Text strong style={{ fontSize: '12px', minWidth: '60px' }}>
+                                                Question {globalIndex + 1}
                                               </Text>
-                                            )}
-                                            <Text type="secondary" style={{ fontSize: '10px' }}>
-                                              {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
-                                            </Text>
+                                              <Text type="secondary" style={{ fontSize: '11px' }}>
+                                                {q.createdAt ? new Date(q.createdAt).toLocaleString() : 'N/A'}
+                                              </Text>
+                                            </div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                              {q.score !== undefined && (
+                                                <Text style={{ 
+                                                  fontSize: '12px', 
+                                                  fontWeight: 'bold',
+                                                  color: q.score >= 80 ? '#52c41a' : q.score >= 60 ? '#faad14' : '#ff4d4f' 
+                                                }}>
+                                                  {q.score}/100
+                                                </Text>
+                                              )}
+                                              <Text type="secondary" style={{ fontSize: '10px' }}>
+                                                {isExpanded ? '▼' : '▶'} Double-click to {isExpanded ? 'hide' : 'show'} details
+                                              </Text>
+                                            </div>
                                           </div>
+                                          
+                                          {/* Expanded view */}
+                                          {isExpanded && (
+                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                              <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
+                                              {q.answer && (
+                                                <div style={{ marginBottom: '4px' }}>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
+                                                </div>
+                                              )}
+                                              {q.explain && (
+                                                <div style={{ marginBottom: '4px' }}>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
+                                                </div>
+                                              )}
+                                              {q.aiFeedback && (
+                                                <div>
+                                                  <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
+                                                  <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
-                                        
-                                        {/* Expanded view */}
-                                        {isExpanded && (
-                                          <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
-                                            <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
-                                            {q.answer && (
-                                              <div style={{ marginBottom: '4px' }}>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Your Answer:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.answer}</div>
-                                              </div>
-                                            )}
-                                            {q.explain && (
-                                              <div style={{ marginBottom: '4px' }}>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>Explanation:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.explain}</div>
-                                              </div>
-                                            )}
-                                            {q.aiFeedback && (
-                                              <div>
-                                                <Text type="secondary" style={{ fontSize: '11px', fontWeight: 'bold' }}>AI Feedback:</Text>
-                                                <div style={{ fontSize: '11px', marginTop: '2px', color: '#666' }}>{q.aiFeedback}</div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                                </div>
+                                      )
+                                    })}
+                                  </div>
+                                  
+                                  {/* Pagination */}
+                                  <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center' }}>
+                                    <Pagination
+                                      current={practiceCurrentPage}
+                                      total={practiceQuestionsHistory.length}
+                                      pageSize={practicePageSize}
+                                      showSizeChanger
+                                      showQuickJumper
+                                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} questions`}
+                                      pageSizeOptions={['2', '4', '6', '8', '10']}
+                                      onChange={(page, size) => {
+                                        setPracticeCurrentPage(page)
+                                        if (size !== practicePageSize) {
+                                          setPracticePageSize(size)
+                                        }
+                                      }}
+                                      onShowSizeChange={(current, size) => {
+                                        setPracticePageSize(size)
+                                        setPracticeCurrentPage(1)
+                                      }}
+                                      locale={{
+                                        items_per_page: 'items/page',
+                                        jump_to: 'Go to',
+                                        jump_to_confirm: 'Go to page',
+                                        page: 'Page',
+                                        prev_page: 'Previous Page',
+                                        next_page: 'Next Page',
+                                        prev_5: 'Previous 5 Pages',
+                                        next_5: 'Next 5 Pages',
+                                        prev_3: 'Previous 3 Pages',
+                                        next_3: 'Next 3 Pages',
+                                      }}
+                                    />
+                                  </div>
+                                </>
                               ) : (
                                 <Text type="secondary" style={{ fontSize: '12px' }}>No questions history yet</Text>
                               )}
@@ -1014,6 +1271,25 @@ export default function TopicDetailPage() {
                               <Card
                                 size="small"
                               >
+                                {/* Unanswered Question Indicator */}
+                                {isPracticeQuestionUnanswered && (
+                                  <div style={{ 
+                                    marginBottom: '12px', 
+                                    padding: '8px 12px', 
+                                    backgroundColor: '#fff7e6', 
+                                    border: '1px solid #ffd591', 
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px'
+                                  }}>
+                                    <span style={{ fontSize: '16px' }}>⏳</span>
+                                    <Text style={{ color: '#d46b08', fontWeight: 'bold', fontSize: '12px' }}>
+                                      This is an unanswered question, please answer it to continue
+                                    </Text>
+                                  </div>
+                                )}
+                                
                                 <div
                                   style={{
                                     lineHeight: '1.6',
