@@ -28,8 +28,8 @@ export async function generateTheory(knowledgeId: string, maxTokens: number = 10
 }
 
 
-export async function editKnowledge(knowledgeId: string, content: string) {
-  const res = await api.patch(`/knowledges/${knowledgeId}`, { prompt: content });
+export async function editKnowledge(knowledgeId: string, name: string, content: string) {
+  const res = await api.patch(`/knowledges/${knowledgeId}`, { name, prompt: content });
   return res.data;
 }
 

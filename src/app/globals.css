@@ -7,3 +7,36 @@
   color: #f50;
   font-weight: bold;
 }
+
+/* Theory content dark mode styling */
+.dark .theory-content {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.dark .theory-content * {
+  color: #ffffff !important;
+  background-color: transparent !important;
+}
+
+.dark .theory-content h1,
+.dark .theory-content h2,
+.dark .theory-content h3,
+.dark .theory-content h4,
+.dark .theory-content h5,
+.dark .theory-content h6 {
+  color: #ffffff !important;
+}
+
+.dark .theory-content p,
+.dark .theory-content div,
+.dark .theory-content span,
+.dark .theory-content li,
+.dark .theory-content ul,
+.dark .theory-content ol {
+  color: #ffffff !important;
+}
+
+.theory-content {
+  color: inherit;
+}

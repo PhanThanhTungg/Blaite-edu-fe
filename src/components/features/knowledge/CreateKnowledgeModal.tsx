@@ -33,7 +33,7 @@ export default function CreateKnowledgeModal({ open, topicId, onCancel, onSucces
       <KnowledgeForm
         mode="create"
         topicId={topicId+""}
-        initialValues={{ name: name ?? '', content: prompt ?? '' }}
+        initialValues={{ name: name ?? '', prompt: prompt ?? '' }}
         parentId={parentId}
         onPendingChange={onPendingChange}
         onSuccess={onSuccess}

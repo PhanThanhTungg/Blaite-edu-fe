@@ -30,6 +30,8 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
     return null;
   }
 
+  console.log('🔍 EditKnowledgeModal received knowledge:', knowledge)
+
   return (
     <Modal
       title="Edit Knowledge"
@@ -46,7 +48,8 @@ export default function EditKnowledgeModal({ open, knowledge, onCancel, onSucces
         topicId={knowledge.topicId+""}
         knowledgeId={knowledge.id+""}
         initialValues={{
-          content: knowledge.prompt || knowledge.content || '',
+          name: knowledge.name || '',
+          prompt: knowledge.prompt || '',
         }}
         onSuccess={onSuccess}
         onKnowledgeUpdate={onKnowledgeUpdate}

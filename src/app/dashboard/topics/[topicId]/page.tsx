@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import { PageContainer } from '@ant-design/pro-components'
-import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, message } from 'antd'
+import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, message, theme } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
@@ -38,6 +38,7 @@ export default function TopicDetailPage() {
   const router = useRouter()
   const topicId = params.topicId as string
   const queryClient = useQueryClient()
+  const { token } = theme.useToken()
 
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -174,6 +175,7 @@ export default function TopicDetailPage() {
   }
 
   const handleEditKnowledge = (knowledge: any) => {
+    console.log('🔍 Editing knowledge:', knowledge)
     setSelectedKnowledge(knowledge)
     setEditKnowledgeModalOpen(true)
   }
@@ -581,17 +583,32 @@ export default function TopicDetailPage() {
                         </span>
                       ),
                       children: selectedKnowledgeForTree.theory ? (
-                        <div
-                          style={{
-                            padding: '16px',
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #e1e4e8',
-                            borderRadius: '6px',
-                            lineHeight: '1.6',
-                            fontSize: '14px'
-                          }}
-                          dangerouslySetInnerHTML={{ __html: selectedKnowledgeForTree.theory }}
-                        />
+                        <div>
+                          <div style={{ marginBottom: '12px', textAlign: 'right' }}>
+                            <Button
+                              type="default"
+                              size="small"
+                              icon={<FileTextOutlined />}
+                              loading={generateTheoryMutation.isPending}
+                              onClick={handleGenerateTheoryForSelected}
+                            >
+                              {generateTheoryMutation.isPending ? 'Regenerating...' : 'Regenerate Theory'}
+                            </Button>
+                          </div>
+                          <div
+                            style={{
+                              padding: '16px',
+                              backgroundColor: token.colorBgContainer,
+                              border: `1px solid ${token.colorBorder}`,
+                              borderRadius: '6px',
+                              lineHeight: '1.6',
+                              fontSize: '14px',
+                              color: token.colorText
+                            }}
+                            className="theory-content dark:!bg-black dark:!text-white"
+                            dangerouslySetInnerHTML={{ __html: selectedKnowledgeForTree.theory }}
+                          />
+                        </div>
                       ) : (
                         <div style={{ textAlign: 'center', padding: '32px 0' }}>
                           <div style={{ fontSize: '32px', marginBottom: '12px' }}>📖</div>

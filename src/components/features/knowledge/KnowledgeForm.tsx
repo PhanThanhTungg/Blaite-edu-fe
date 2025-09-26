@@ -8,7 +8,7 @@ import { useEffect } from 'react';
 
 interface KnowledgeFormValues {
   name: string;
-  content: string;
+  prompt: string;
 }
 
 interface KnowledgeFormProps {
@@ -41,13 +41,13 @@ export default function KnowledgeForm({
 
   const updateKnowledgeMutation = useMutation({
     mutationFn: (values: KnowledgeFormValues) =>
-      editKnowledge(knowledgeId as string, values.content),
+      editKnowledge(knowledgeId as string, values.name, values.prompt),
     onSuccess: async (updatedKnowledge, variables) => {
       message.success('Knowledge updated successfully!');
       
       // Gọi callback để update UI ngay lập tức
       if (onKnowledgeUpdate && knowledgeId) {
-        onKnowledgeUpdate({ id: knowledgeId, prompt: variables.content });
+        onKnowledgeUpdate({ id: knowledgeId, prompt: variables.prompt });
       }
       
       // Optimistic update: Update query cache immediately
@@ -55,7 +55,7 @@ export default function KnowledgeForm({
         if (!oldData) return oldData;
         return oldData.map(knowledge => 
           knowledge.id === knowledgeId 
-            ? { ...knowledge, prompt: variables.content }
+            ? { ...knowledge, name: variables.name, prompt: variables.prompt }
             : knowledge
         );
       });
@@ -91,17 +91,17 @@ export default function KnowledgeForm({
       valueType: 'text',
     },
     {
-      title: 'Content',
-      dataIndex: 'content',
+      title: 'Prompt',
+      dataIndex: 'prompt',
       formItemProps: {
         rules: [
-          { required: true, message: 'Please enter knowledge content' },
-          { min: 1, message: 'Content must be at least 1 character' },
-          { max: 1000, message: 'Content must be less than 1000 characters' }
+          { required: true, message: 'Please enter knowledge prompt' },
+          { min: 1, message: 'Prompt must be at least 1 character' },
+          { max: 1000, message: 'Prompt must be less than 1000 characters' }
         ],
       },
       fieldProps: {
-        placeholder: 'Enter knowledge content...',
+        placeholder: 'Enter knowledge prompt...',
         rows: 4,
         showCount: true,
         maxLength: 1000,
@@ -113,12 +113,12 @@ export default function KnowledgeForm({
   interface CreateKnowledgeInput {
     topicId: string;
     name: string;
-    content: string;
+    prompt: string;
     parentId?: string;
 }
 
   const createKnowledgeMutation = useMutation({
-    mutationFn: (values: CreateKnowledgeInput) => createKnowledge(values.topicId, values.name, values.content, values.parentId),
+    mutationFn: (values: CreateKnowledgeInput) => createKnowledge(values.topicId, values.name, values.prompt, values.parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
       queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
@@ -139,7 +139,7 @@ export default function KnowledgeForm({
 
   const handleSubmit = async (values: KnowledgeFormValues) => {
     if (mode === 'create') {
-      await createKnowledgeMutation.mutateAsync({ topicId, name: values.name, content: values.content, parentId });
+      await createKnowledgeMutation.mutateAsync({ topicId, name: values.name, prompt: values.prompt, parentId });
     } else {
       await updateKnowledgeMutation.mutateAsync(values);
     }
