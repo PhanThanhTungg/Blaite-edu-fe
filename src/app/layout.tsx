@@ -8,7 +8,7 @@ import AStudyAppProvider from "@/components/providers/HappyThemeProvider";
 import TanstackProvider from "@/components/providers/TanstackProvider";
 import { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { App, ConfigProvider } from "antd";
+import { App } from "antd";
 import UserBootstrap from "@/components/features/user/UserBootstrap";
 import { ToastContainer } from 'react-toastify';
 export const metadata: Metadata = {
@@ -23,16 +23,14 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body>
         <ToastContainer />
         <ClerkProvider>
-          <ConfigProvider>
-            <AntdRegistry>
-              <AStudyAppProvider>
-                <TanstackProvider>
-                  <UserBootstrap />
-                  <App>{children}</App>
-                </TanstackProvider>
-              </AStudyAppProvider>
-            </AntdRegistry>
-          </ConfigProvider>
+          <AntdRegistry>
+            <AStudyAppProvider>
+              <TanstackProvider>
+                <UserBootstrap />
+                <App>{children}</App>
+              </TanstackProvider>
+            </AStudyAppProvider>
+          </AntdRegistry>
         </ClerkProvider>
       </body>
     </html>

@@ -85,7 +85,7 @@ export default function TeleBotSetupPage() {
       breadcrumb={{
         items: [
           { title: '🏠', href: '/dashboard' },
-          { title: 'Telegram Setup' },
+          { title: 'Bot Setup' },
         ],
       }}
       style={{ 

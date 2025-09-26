@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, Typography, Tooltip } from 'antd'
+import { Card, Typography, Tooltip, theme } from 'antd'
 import { useState } from 'react'
 
 const { Text } = Typography
@@ -21,6 +21,7 @@ interface ActivityGraphProps {
 
 export default function ActivityGraph({ activities, className = "" }: ActivityGraphProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const { token } = theme.useToken()
 
   // Convert activities to activity data
   const activityData = activities.reduce((acc, activity) => {
@@ -123,7 +124,7 @@ export default function ActivityGraph({ activities, className = "" }: ActivityGr
           <thead>
             <tr>
               {/* Empty cell for weekday labels column */}
-              <th className="w-8 bg-white sticky left-0 z-10"></th>
+              <th className="w-8 sticky left-0 z-10" style={{ backgroundColor: token.colorBgContainer }}></th>
               {/* Month headers */}
               {months.map((month, monthIndex) => (
                 <th key={monthIndex} className="px-2 text-center">
@@ -139,7 +140,7 @@ export default function ActivityGraph({ activities, className = "" }: ActivityGr
             {weekdays.map((weekday, weekdayIndex) => (
               <tr key={weekdayIndex} className="h-4">
                 {/* Weekday label - sticky */}
-                <td className="pr-2 text-right bg-white sticky left-0 z-10">
+                <td className="pr-2 text-right sticky left-0 z-10" style={{ backgroundColor: token.colorBgContainer }}>
                   <div className="h-3 flex items-center justify-end text-xs text-gray-500">
                     {weekdayIndex % 2 === 0 ? weekday : ''}
                   </div>

@@ -3,10 +3,11 @@
 import { ProLayout } from '@ant-design/pro-components'
 import { usePathname, useRouter } from 'next/navigation'
 import { UserButton } from '@clerk/nextjs'
-import { Dropdown, Button, message } from 'antd'
+import { Dropdown, Button, Switch } from 'antd'
 import { DownOutlined, SettingOutlined, BulbOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useEffect } from 'react'
+import { useTheme } from '@/components/providers/HappyThemeProvider'
 
 interface ProLayoutWrapperProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ interface ProLayoutWrapperProps {
 export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { colorScheme, toggleTheme } = useTheme()
 
   // Add click handler to title after component mounts
   useEffect(() => {
@@ -61,8 +63,7 @@ export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
     if (e.key === 'teleSetup') {
       router.push('/dashboard/tele');
     } else if (e.key === 'darkMode') {
-      message.info('Dark Mode - Chức năng đang phát triển');
-      // TODO: Implement dark mode toggle
+      toggleTheme();
     }
   };
 
@@ -70,12 +71,24 @@ export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
   const menuItems: MenuProps['items'] = [
     {
       key: 'teleSetup',
-      label: 'Telegram Setup',
+      label: 'Bot Setup',
       icon: <SettingOutlined />,
     },
     {
       key: 'darkMode',
-      label: 'Dark Mode',
+      label: (
+        <div
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: 200 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Switch
+            checkedChildren={<BulbOutlined />}
+            unCheckedChildren={<BulbOutlined />}
+            checked={colorScheme === 'dark'}
+            onChange={toggleTheme}
+          />
+        </div>
+      ),
       icon: <BulbOutlined />,
     },
   ];
