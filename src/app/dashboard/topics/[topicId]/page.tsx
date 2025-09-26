@@ -8,7 +8,7 @@ import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Ske
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
-import { getKnowledges, generateKnowledge, generateTheory, getKnowledgeDetail, deleteKnowledge } from '@/services/knowledge.service';
+import { getKnowledges, generateKnowledge, getKnowledgeDetail, deleteKnowledge, generateTheory } from '@/services/knowledge.service';
 import { generateTheoryQuestion } from '@/services/question.service';
 import { generatePracticeQuestion } from '@/services/question.service';
 import { submitQuestionAnswer } from '@/services/question.service';
@@ -127,42 +127,7 @@ export default function TopicDetailPage() {
   // Generate knowledge mutation
   const generateKnowledgeMutation = useMutation({
     mutationFn: () => generateKnowledge(topicId),
-    onSuccess: async (newKnowledges) => {
-      console.log('🔍 Knowledge generated, now generating theory for all leaf nodes...');
-
-      // Find all leaf nodes (knowledges without children) and generate theory for them
-      const generateTheoryForLeafNodes = async (knowledgeList: any[]) => {
-        const leafNodes: any[] = [];
-
-        const findLeafNodes = (knowledges: any[]) => {
-          knowledges.forEach(knowledge => {
-            if (!knowledge.children || knowledge.children.length === 0) {
-              leafNodes.push(knowledge);
-            } else {
-              findLeafNodes(knowledge.children);
-            }
-          });
-        };
-
-        findLeafNodes(knowledgeList);
-        console.log(`🔍 Found ${leafNodes.length} leaf nodes:`, leafNodes.map(k => k.name));
-
-        // Generate theory for each leaf node
-        for (const leafKnowledge of leafNodes) {
-          try {
-            console.log(`🔍 Generating theory for: ${leafKnowledge.name}`);
-            await generateTheory(leafKnowledge.id);
-            console.log(`✅ Theory generated for: ${leafKnowledge.name}`);
-          } catch (error) {
-            console.error(`❌ Failed to generate theory for ${leafKnowledge.name}:`, error);
-          }
-        }
-
-        console.log('🔍 All theory generation completed');
-      };
-
-      await generateTheoryForLeafNodes(newKnowledges);
-
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
       setIsGenerating(false);
     },
@@ -212,6 +177,24 @@ export default function TopicDetailPage() {
     setSelectedKnowledge(knowledge)
     setEditKnowledgeModalOpen(true)
   }
+  // Generate theory for selected knowledge (on-demand)
+  const generateTheoryMutation = useMutation({
+    mutationFn: (knowledgeId: string) => generateTheory(knowledgeId),
+    onSuccess: async (updated) => {
+      // Refresh list/tree
+      await queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] })
+      // If API returns updated knowledge with theory, update local selected state
+      if (updated && updated.theory && selectedKnowledgeForTree && updated.id === selectedKnowledgeForTree.id) {
+        setSelectedKnowledgeForTree((prev: any) => ({ ...prev, theory: updated.theory }))
+      }
+    },
+  })
+
+  const handleGenerateTheoryForSelected = async () => {
+    if (!selectedKnowledgeForTree) return
+    generateTheoryMutation.mutate(selectedKnowledgeForTree.id)
+  }
+
 
   const handleDeleteKnowledge = (knowledgeId: string) => {
     // Recursive function to find knowledge in the tree (including children)
@@ -590,33 +573,36 @@ export default function TopicDetailPage() {
                     },
                     // Only show theory/practice tabs for leaf nodes (no children)
                     ...((!selectedKnowledgeForTree.children || selectedKnowledgeForTree.children.length === 0) ? [
-                      {
-                        key: 'theory',
-                        label: (
-                          <span>
-                            📖 Theory Content
-                          </span>
-                        ),
-                        children: selectedKnowledgeForTree.theory ? (
-                          <div
-                            style={{
-                              padding: '16px',
-                              backgroundColor: '#ffffff',
-                              border: '1px solid #e1e4e8',
-                              borderRadius: '6px',
-                              lineHeight: '1.6',
-                              fontSize: '14px'
-                            }}
-                            dangerouslySetInnerHTML={{ __html: selectedKnowledgeForTree.theory }}
-                          />
-                        ) : (
-                          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-                            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📖</div>
-                            <Text type="secondary">No theory content available for this knowledge</Text>
-                          </div>
-                        ),
-                        disabled: !selectedKnowledgeForTree.theory,
-                      },
+                    {
+                      key: 'theory',
+                      label: (
+                        <span>
+                          📖 Theory Content
+                        </span>
+                      ),
+                      children: selectedKnowledgeForTree.theory ? (
+                        <div
+                          style={{
+                            padding: '16px',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e1e4e8',
+                            borderRadius: '6px',
+                            lineHeight: '1.6',
+                            fontSize: '14px'
+                          }}
+                          dangerouslySetInnerHTML={{ __html: selectedKnowledgeForTree.theory }}
+                        />
+                      ) : (
+                        <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                          <div style={{ fontSize: '32px', marginBottom: '12px' }}>📖</div>
+                          <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>No theory content yet</Text>
+                          <Button type="primary" loading={generateTheoryMutation.isPending} onClick={handleGenerateTheoryForSelected} icon={<FileTextOutlined />}>
+                            {generateTheoryMutation.isPending ? 'Generating...' : 'Generate Theory'}
+                          </Button>
+                        </div>
+                      ),
+                      disabled: false,
+                    },
                       {
                         key: 'theory-exercise',
                         label: (
@@ -842,6 +828,7 @@ export default function TopicDetailPage() {
                             )}
                           </div>
                         ),
+                        disabled: !selectedKnowledgeForTree.theory,
                       }
                     ] : [])
                   ]}
@@ -916,7 +903,7 @@ export default function TopicDetailPage() {
        <DeleteKnowledgeModal
          open={deleteKnowledgeModalOpen}
          knowledgeId={selectedKnowledge?.id || null}
-         knowledgeContent={selectedKnowledge?.prompt || selectedKnowledge?.name || ''}
+         knowledgeContent={selectedKnowledge?.name || ''}
          topicId={topicId}
          onCancel={() => {
            setDeleteKnowledgeModalOpen(false)

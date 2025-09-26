@@ -74,7 +74,7 @@ export default function DeleteKnowledgeModal({
         style={{
           marginBottom: 16,
           padding: 12,
-          backgroundColor: "#f5f5f5",
+          backgroundColor: "var(--ant-color-fill-quaternary)",
           borderRadius: 6,
         }}
       >
