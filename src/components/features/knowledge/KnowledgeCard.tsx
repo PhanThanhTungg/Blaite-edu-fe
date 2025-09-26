@@ -5,8 +5,6 @@ import {
   EyeOutlined,
   EditOutlined,
   DeleteOutlined,
-  QuestionCircleOutlined,
-  MoreOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation'
 

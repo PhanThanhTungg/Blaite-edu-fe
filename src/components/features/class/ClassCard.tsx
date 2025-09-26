@@ -42,6 +42,7 @@ export default function ClassCard({ class: classItem, onView, onEdit, onDelete, 
     <Card
       hoverable
       className="h-full"
+      bordered={false}
       styles={{ 
         body: {
           padding: '16px',

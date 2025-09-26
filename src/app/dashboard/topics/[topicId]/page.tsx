@@ -45,6 +45,7 @@ export default function TopicDetailPage() {
   const [editKnowledgeModalOpen, setEditKnowledgeModalOpen] = useState(false)
   const [deleteKnowledgeModalOpen, setDeleteKnowledgeModalOpen] = useState(false)
   const [selectedKnowledge, setSelectedKnowledge] = useState<any>(null)
+  const [createChildParent, setCreateChildParent] = useState<any>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedKnowledgeForTree, setSelectedKnowledgeForTree] = useState<any>(null)
   const [theoryQuestion, setTheoryQuestion] = useState<any>(null)
@@ -59,6 +60,7 @@ export default function TopicDetailPage() {
   const [submittedTheoryResult, setSubmittedTheoryResult] = useState<any>(null)
   const [submittedPracticeResult, setSubmittedPracticeResult] = useState<any>(null)
   const [selectedTreeKeys, setSelectedTreeKeys] = useState<React.Key[]>([])
+  const [isCreatingKnowledge, setIsCreatingKnowledge] = useState(false)
 
   // State cho bot knowledge
   const [isSettingBotKnowledge, setIsSettingBotKnowledge] = useState(false)
@@ -184,6 +186,7 @@ export default function TopicDetailPage() {
   }
 
   const handleCreateKnowledge = () => {
+    setCreateChildParent(null)
     setCreateKnowledgeModalOpen(true)
   }
 
@@ -366,8 +369,8 @@ export default function TopicDetailPage() {
           ],
         }}
         extra={[
-          <Button key="create" icon={<PlusOutlined />} onClick={handleCreateKnowledge}>
-            Create Knowledge
+          <Button key="create" icon={<PlusOutlined />} onClick={handleCreateKnowledge} loading={isCreatingKnowledge} disabled={isCreatingKnowledge}>
+            {isCreatingKnowledge ? 'Creating...' : 'Create Knowledge'}
           </Button>,
           <Button key="generate" type="primary" loading={isGenerating} onClick={handleGenerateKnowledge}>
             Generate Knowledge
@@ -389,8 +392,8 @@ export default function TopicDetailPage() {
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>📖</div>
                   <Text type="secondary">No knowledge items yet</Text>
                   <div style={{ marginTop: '16px' }}>
-                    <Button type="primary" onClick={handleCreateKnowledge}>
-                      Create First Knowledge
+                    <Button type="primary" onClick={handleCreateKnowledge} loading={isCreatingKnowledge} disabled={isCreatingKnowledge}>
+                      {isCreatingKnowledge ? 'Creating...' : 'Create First Knowledge'}
                     </Button>
                   </div>
                 </div>
@@ -472,6 +475,18 @@ export default function TopicDetailPage() {
                             display: 'flex',
                             gap: '8px'
                           }}>
+                            <Button
+                              type="default"
+                              icon={<PlusOutlined />}
+                              onClick={() => {
+                                setCreateChildParent(selectedKnowledgeForTree)
+                                setCreateKnowledgeModalOpen(true)
+                              }}
+                              loading={isCreatingKnowledge}
+                              disabled={isCreatingKnowledge}
+                            >
+                              Create Child
+                            </Button>
                             <Button
                               type="default"
                               icon={<EditOutlined />}
@@ -865,8 +880,13 @@ export default function TopicDetailPage() {
       <CreateKnowledgeModal
         open={createKnowledgeModalOpen}
         topicId={topicId}
+        parentId={createChildParent?.id}
         onCancel={() => setCreateKnowledgeModalOpen(false)}
-        onSuccess={() => setCreateKnowledgeModalOpen(false)}
+        onSuccess={() => {
+          setCreateChildParent(null)
+          setCreateKnowledgeModalOpen(false)
+        }}
+        onPendingChange={(p) => setIsCreatingKnowledge(p)}
       />
 
       {/* Edit Knowledge Modal */}

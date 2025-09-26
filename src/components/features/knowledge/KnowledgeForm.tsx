@@ -4,8 +4,10 @@ import { createKnowledge, editKnowledge } from '@/services/knowledge.service';
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
+import { useEffect } from 'react';
 
 interface KnowledgeFormValues {
+  name: string;
   content: string;
 }
 
@@ -17,6 +19,8 @@ interface KnowledgeFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
   onKnowledgeUpdate?: (updatedKnowledge: { id: string; prompt: string }) => void;
+  parentId?: string;
+  onPendingChange?: (pending: boolean) => void;
 }
 
 export default function KnowledgeForm({ 
@@ -26,7 +30,9 @@ export default function KnowledgeForm({
   knowledgeId, 
   onSuccess, 
   onCancel,
-  onKnowledgeUpdate
+  onKnowledgeUpdate,
+  parentId,
+  onPendingChange
 }: KnowledgeFormProps) {
   const queryClient = useQueryClient();
   const {message} = App.useApp();
@@ -66,9 +72,24 @@ export default function KnowledgeForm({
     },
   });
 
-  const isPending = updateKnowledgeMutation.isPending;
+  // create mutation is declared below; pending computed after both exist
 
   const columns : ProFormColumnsType<KnowledgeFormValues, "text">[] = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      formItemProps: {
+        rules: [
+          { required: true, message: 'Please enter knowledge name' },
+          { min: 1, message: 'Name must be at least 1 character' },
+          { max: 200, message: 'Name must be less than 200 characters' }
+        ],
+      },
+      fieldProps: {
+        placeholder: 'Enter knowledge name...'
+      },
+      valueType: 'text',
+    },
     {
       title: 'Content',
       dataIndex: 'content',
@@ -91,11 +112,13 @@ export default function KnowledgeForm({
 
   interface CreateKnowledgeInput {
     topicId: string;
+    name: string;
     content: string;
+    parentId?: string;
 }
 
   const createKnowledgeMutation = useMutation({
-    mutationFn: (values: CreateKnowledgeInput) => createKnowledge(values.topicId, values.content),
+    mutationFn: (values: CreateKnowledgeInput) => createKnowledge(values.topicId, values.name, values.content, values.parentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['knowledges', topicId] });
       queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
@@ -107,9 +130,16 @@ export default function KnowledgeForm({
     }
   });
 
+  const isPending = updateKnowledgeMutation.isPending || createKnowledgeMutation.isPending;
+
+  // Bubble pending state to parent when creating
+  useEffect(() => {
+    if (onPendingChange) onPendingChange(isPending);
+  }, [isPending, onPendingChange]);
+
   const handleSubmit = async (values: KnowledgeFormValues) => {
     if (mode === 'create') {
-      await createKnowledgeMutation.mutateAsync({ topicId, content: values.content });
+      await createKnowledgeMutation.mutateAsync({ topicId, name: values.name, content: values.content, parentId });
     } else {
       await updateKnowledgeMutation.mutateAsync(values);
     }

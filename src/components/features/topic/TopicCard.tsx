@@ -88,7 +88,7 @@ export default function TopicCard({
       className={className}
       styles={{ body: { paddingBottom: 12 } }}
       variant="outlined"
-      style={{ borderRadius: 12, boxShadow: "0 2px 8px #f0f1f2" }}
+      style={{ borderRadius: 12, boxShadow: "0 0 1px #f0f1f2" }}
       onMouseEnter={handleMouseEnter}
       title={
         <Text strong style={{ fontSize: 16 }}>

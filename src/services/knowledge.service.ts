@@ -12,8 +12,8 @@ export async function getKnowledgeDetail(knowledgeId: string) {
   return res.data;
 }
 
-export async function createKnowledge(topicId: string, content: string) {
-  const res = await api.post('/knowledges', { topicId, prompt: content });
+export async function createKnowledge(topicId: string, name: string, content: string, parentId?: string) {
+  const res = await api.post('/knowledges', { topicId, name, prompt: content, parentId });
   return res.data;
 }
 

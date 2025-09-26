@@ -8,9 +8,13 @@ interface CreateKnowledgeModalProps {
   topicId: string | number;
   onCancel: () => void;
   onSuccess?: () => void;
+  name?: string;
+  prompt?: string;
+  parentId?: string;
+  onPendingChange?: (pending: boolean) => void;
 }
 
-export default function CreateKnowledgeModal({ open, topicId, onCancel, onSuccess }: CreateKnowledgeModalProps) {
+export default function CreateKnowledgeModal({ open, topicId, onCancel, onSuccess, name, prompt, parentId, onPendingChange }: CreateKnowledgeModalProps) {
   const handleCancel = () => {
     onCancel();
   };
@@ -29,6 +33,9 @@ export default function CreateKnowledgeModal({ open, topicId, onCancel, onSucces
       <KnowledgeForm
         mode="create"
         topicId={topicId+""}
+        initialValues={{ name: name ?? '', content: prompt ?? '' }}
+        parentId={parentId}
+        onPendingChange={onPendingChange}
         onSuccess={onSuccess}
         onCancel={handleCancel}
       />
