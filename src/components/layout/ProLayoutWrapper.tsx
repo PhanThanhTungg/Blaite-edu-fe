@@ -8,6 +8,7 @@ import { DownOutlined, SettingOutlined, BulbOutlined } from '@ant-design/icons'
 import type { MenuProps } from 'antd'
 import { useEffect } from 'react'
 import { useTheme } from '@/components/providers/HappyThemeProvider'
+import Footer from './Footer'
 
 interface ProLayoutWrapperProps {
   children: React.ReactNode
@@ -94,43 +95,48 @@ export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
   ];
 
   return (
-    <ProLayout
-      title="AStudy"
-      location={{
-        pathname,
-      }}
-      layout="top"
-      rightContentRender={() => (
-        <div style={{ 
-          marginRight: 16,
-          display: 'flex',
-          alignItems: 'center',
-          height: '100%',
-          gap: 8
-        }}>
-          <UserButton />
-          <Dropdown
-            menu={{ 
-              items: menuItems,
-              onClick: handleMenuClick 
-            }}
-            trigger={['click']}
-            placement="bottomRight"
-          >
-            <Button 
-              type="text" 
-              icon={<DownOutlined />}
-              style={{
-                border: 'none',
-                boxShadow: 'none',
-                color: '#666'
+    <>
+      <ProLayout
+        title="AStudy"
+        location={{
+          pathname,
+        }}
+        layout="top"
+        rightContentRender={() => (
+          <div style={{ 
+            marginRight: 16,
+            display: 'flex',
+            alignItems: 'center',
+            height: '100%',
+            gap: 8
+          }}>
+            <UserButton />
+            <Dropdown
+              menu={{ 
+                items: menuItems,
+                onClick: handleMenuClick 
               }}
-            />
-          </Dropdown>
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button 
+                type="text" 
+                icon={<DownOutlined />}
+                style={{
+                  border: 'none',
+                  boxShadow: 'none',
+                  color: '#666'
+                }}
+              />
+            </Dropdown>
+          </div>
+        )}
+      >
+        <div style={{ paddingBottom: '60px' }}>
+          {children}
         </div>
-      )}
-    >
-      {children}
-    </ProLayout>
+      </ProLayout>
+      <Footer />
+    </>
   )
 } 

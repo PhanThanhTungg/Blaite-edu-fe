@@ -15,6 +15,7 @@ export interface ScheduleTypeQuestion {
 }
 
 export async function setScheduleTypeQuestion(typeQuestion: ScheduleTypeQuestion) {
-  const res = await api.post('/schedule/schedule-type-question', { typeQuestion });
+  console.log('typeQuestion', typeQuestion);
+  const res = await api.post('/schedule/schedule-type-question', typeQuestion );
   return res.data;
 }

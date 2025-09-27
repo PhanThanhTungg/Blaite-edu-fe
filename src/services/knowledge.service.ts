@@ -17,13 +17,13 @@ export async function createKnowledge(topicId: string, name: string, content: st
   return res.data;
 }
 
-export async function generateKnowledge(topicId: string, maxTokens: number = 1000, temperature: number = 0.5) {
-  const res = await api.post(`/knowledges/topic/${topicId}/generate?maxTokens=${maxTokens}&temperature=${temperature}`);
+export async function generateKnowledge(topicId: string, maxTokens: number = 10000, temperature: number = 0.5) {
+  const res = await api.post(`/knowledges/topic/${topicId}/generate?maxTokens=10000&temperature=${temperature}`);
   return res.data;
 }
 
-export async function generateTheory(knowledgeId: string, maxTokens: number = 1000, temperature: number = 0.5) {
-  const res = await api.post(`/knowledges/${knowledgeId}/generate-theory?maxTokens=${maxTokens}&temperature=${temperature}`);
+export async function generateTheory(knowledgeId: string, maxTokens: number = 10000, temperature: number = 0.5) {
+  const res = await api.post(`/knowledges/${knowledgeId}/generate-theory?maxTokens=10000&temperature=${temperature}`);
   return res.data;
 }
 

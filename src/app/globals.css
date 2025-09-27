@@ -8,7 +8,41 @@
   font-weight: bold;
 }
 
-/* Theory content dark mode styling */
+/* Theory content styling */
+.theory-content {
+  color: inherit;
+}
+
+/* Light mode styling */
+.theory-content {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.theory-content * {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+.theory-content h1,
+.theory-content h2,
+.theory-content h3,
+.theory-content h4,
+.theory-content h5,
+.theory-content h6 {
+  color: #000000 !important;
+}
+
+.theory-content p,
+.theory-content div,
+.theory-content span,
+.theory-content li,
+.theory-content ul,
+.theory-content ol {
+  color: #000000 !important;
+}
+
+/* Dark mode styling */
 .dark .theory-content {
   background-color: #000000 !important;
   color: #ffffff !important;
@@ -35,8 +69,4 @@
 .dark .theory-content ul,
 .dark .theory-content ol {
   color: #ffffff !important;
-}
-
-.theory-content {
-  color: inherit;
 }

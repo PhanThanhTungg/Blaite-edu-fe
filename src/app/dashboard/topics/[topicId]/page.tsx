@@ -670,7 +670,7 @@ export default function TopicDetailPage() {
                           <div style={{
                             marginTop: '24px',
                             paddingTop: '16px',
-                            borderTop: '1px solid #f0f0f0',
+                            borderTop: `1px solid ${token.colorBorder}`,
                             display: 'flex',
                             gap: '8px'
                           }}>
@@ -812,14 +812,12 @@ export default function TopicDetailPage() {
                           <div
                             style={{
                               padding: '16px',
-                              backgroundColor: token.colorBgContainer,
                               border: `1px solid ${token.colorBorder}`,
                               borderRadius: '6px',
                               lineHeight: '1.6',
-                              fontSize: '14px',
-                              color: token.colorText
+                              fontSize: '14px'
                             }}
-                            className="theory-content dark:!bg-black dark:!text-white"
+                            className="theory-content"
                             dangerouslySetInnerHTML={{ __html: selectedKnowledgeForTree.theory }}
                           />
                         </div>
@@ -873,12 +871,12 @@ export default function TopicDetailPage() {
                               </div>
                               {theoryQuestionsHistory.length > 0 ? (
                                 <>
-                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: `1px solid ${token.colorBorder}`, borderRadius: '6px', padding: '12px' }}>
                                     {getTheoryPaginatedQuestions().map((q, index) => {
                                       const globalIndex = (theoryCurrentPage - 1) * theoryPageSize + index
                                       const isExpanded = expandedTheoryQuestions.has(q.id || globalIndex.toString())
                                       return (
-                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: token.colorFillAlter, borderRadius: '4px' }}>
                                           {/* Compact view */}
                                           <div 
                                             style={{ 
@@ -916,7 +914,7 @@ export default function TopicDetailPage() {
                                           
                                           {/* Expanded view */}
                                           {isExpanded && (
-                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${token.colorBorder}` }}>
                                               <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
                                               {q.answer && (
                                                 <div style={{ marginBottom: '4px' }}>
@@ -1006,15 +1004,15 @@ export default function TopicDetailPage() {
                                   <div style={{ 
                                     marginBottom: '12px', 
                                     padding: '8px 12px', 
-                                    backgroundColor: '#fff7e6', 
-                                    border: '1px solid #ffd591', 
+                                    backgroundColor: token.colorWarningBg, 
+                                    border: `1px solid ${token.colorWarningBorder}`, 
                                     borderRadius: '6px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px'
                                   }}>
                                     <span style={{ fontSize: '16px' }}>⏳</span>
-                                    <Text style={{ color: '#d46b08', fontWeight: 'bold', fontSize: '12px' }}>
+                                    <Text style={{ color: token.colorWarning, fontWeight: 'bold', fontSize: '12px' }}>
                                       This is an unanswered question, please answer it to continue  
                                     </Text>
                                   </div>
@@ -1031,7 +1029,7 @@ export default function TopicDetailPage() {
                                 />
 
                                 {/* Answer Input Section */}
-                                <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+                                <div style={{ marginTop: '16px', borderTop: `1px solid ${token.colorBorder}`, paddingTop: '16px' }}>
                                   <Text strong style={{ display: 'block', marginBottom: '8px' }}>
                                     Your Answer:
                                   </Text>
@@ -1055,22 +1053,22 @@ export default function TopicDetailPage() {
 
                                 {/* Results Section */}
                                 {submittedTheoryResult && (
-                                  <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+                                  <div style={{ marginTop: '16px', borderTop: `1px solid ${token.colorBorder}`, paddingTop: '16px' }}>
                                     <div style={{ marginBottom: '16px' }}>
-                                      <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
+                                      <Text strong style={{ fontSize: '16px', color: token.colorPrimary }}>
                                         📊 Your Score: {submittedTheoryResult.score}/100
                                       </Text>
                                     </div>
 
                                     {submittedTheoryResult.explain && (
                                       <div style={{ marginBottom: '12px' }}>
-                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
+                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: token.colorWarning }}>
                                           📝 Explanation:
                                         </Text>
                                         <div style={{
                                           padding: '12px',
-                                          backgroundColor: '#fff7e6',
-                                          border: '1px solid #ffd591',
+                                          backgroundColor: token.colorWarningBg,
+                                          border: `1px solid ${token.colorWarningBorder}`,
                                           borderRadius: '6px',
                                           lineHeight: '1.6'
                                         }}>
@@ -1086,8 +1084,8 @@ export default function TopicDetailPage() {
                                         </Text>
                                         <div style={{
                                           padding: '12px',
-                                          backgroundColor: '#f6ffed',
-                                          border: '1px solid #b7eb8f',
+                                          backgroundColor: token.colorSuccessBg,
+                                          border: `1px solid ${token.colorSuccessBorder}`,
                                           borderRadius: '6px',
                                           lineHeight: '1.6'
                                         }}>
@@ -1097,7 +1095,7 @@ export default function TopicDetailPage() {
                                     )}
 
                                     {/* Generate New Question Button */}
-                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: `1px solid ${token.colorBorder}` }}>
                                       <Button
                                         type="primary"
                                         icon={<FileTextOutlined />}
@@ -1154,12 +1152,12 @@ export default function TopicDetailPage() {
                               </div>
                               {practiceQuestionsHistory.length > 0 ? (
                                 <>
-                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: '1px solid #f0f0f0', borderRadius: '6px', padding: '12px' }}>
+                                  <div style={{ maxHeight: '300px', overflowY: 'auto', border: `1px solid ${token.colorBorder}`, borderRadius: '6px', padding: '12px' }}>
                                     {getPracticePaginatedQuestions().map((q, index) => {
                                       const globalIndex = (practiceCurrentPage - 1) * practicePageSize + index
                                       const isExpanded = expandedPracticeQuestions.has(q.id || globalIndex.toString())
                                       return (
-                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                        <div key={q.id || globalIndex} style={{ marginBottom: '8px', padding: '8px', backgroundColor: token.colorFillAlter, borderRadius: '4px' }}>
                                           {/* Compact view */}
                                           <div 
                                             style={{ 
@@ -1197,7 +1195,7 @@ export default function TopicDetailPage() {
                                           
                                           {/* Expanded view */}
                                           {isExpanded && (
-                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #e8e8e8' }}>
+                                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: `1px solid ${token.colorBorder}` }}>
                                               <div style={{ fontSize: '12px', marginBottom: '8px' }} dangerouslySetInnerHTML={{ __html: q.content }} />
                                               {q.answer && (
                                                 <div style={{ marginBottom: '4px' }}>
@@ -1287,15 +1285,15 @@ export default function TopicDetailPage() {
                                   <div style={{ 
                                     marginBottom: '12px', 
                                     padding: '8px 12px', 
-                                    backgroundColor: '#fff7e6', 
-                                    border: '1px solid #ffd591', 
+                                    backgroundColor: token.colorWarningBg, 
+                                    border: `1px solid ${token.colorWarningBorder}`, 
                                     borderRadius: '6px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     gap: '8px'
                                   }}>
                                     <span style={{ fontSize: '16px' }}>⏳</span>
-                                    <Text style={{ color: '#d46b08', fontWeight: 'bold', fontSize: '12px' }}>
+                                    <Text style={{ color: token.colorWarning, fontWeight: 'bold', fontSize: '12px' }}>
                                       This is an unanswered question, please answer it to continue
                                     </Text>
                                   </div>
@@ -1312,7 +1310,7 @@ export default function TopicDetailPage() {
                                 />
 
                                 {/* Answer Input Section */}
-                                <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+                                <div style={{ marginTop: '16px', borderTop: `1px solid ${token.colorBorder}`, paddingTop: '16px' }}>
                                   <Text strong style={{ display: 'block', marginBottom: '8px' }}>
                                     Your Answer:
                                   </Text>
@@ -1336,22 +1334,22 @@ export default function TopicDetailPage() {
 
                                 {/* Results Section */}
                                 {submittedPracticeResult && (
-                                  <div style={{ marginTop: '16px', borderTop: '1px solid #f0f0f0', paddingTop: '16px' }}>
+                                  <div style={{ marginTop: '16px', borderTop: `1px solid ${token.colorBorder}`, paddingTop: '16px' }}>
                                     <div style={{ marginBottom: '16px' }}>
-                                      <Text strong style={{ fontSize: '16px', color: '#1890ff' }}>
+                                      <Text strong style={{ fontSize: '16px', color: token.colorPrimary }}>
                                         📊 Your Score: {submittedPracticeResult.score}/100
                                       </Text>
                                     </div>
 
                                     {submittedPracticeResult.explain && (
                                       <div style={{ marginBottom: '16px' }}>
-                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: '#fa8c16' }}>
+                                        <Text strong style={{ display: 'block', marginBottom: '8px', color: token.colorWarning }}>
                                           📝 Explanation:
                                         </Text>
                                         <div style={{
                                           padding: '12px',
-                                          backgroundColor: '#fff7e6',
-                                          border: '1px solid #ffd591',
+                                          backgroundColor: token.colorWarningBg,
+                                          border: `1px solid ${token.colorWarningBorder}`,
                                           borderRadius: '6px',
                                           lineHeight: '1.6'
                                         }}>
@@ -1361,7 +1359,7 @@ export default function TopicDetailPage() {
                                     )}
 
                                     {/* Generate New Question Button */}
-                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: '1px solid #f0f0f0' }}>
+                                    <div style={{ textAlign: 'center', paddingTop: '16px', borderTop: `1px solid ${token.colorBorder}` }}>
                                       <Button
                                         type="primary"
                                         icon={<FileTextOutlined />}
