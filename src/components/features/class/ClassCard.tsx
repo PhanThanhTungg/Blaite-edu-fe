@@ -2,8 +2,57 @@
 
 import { Card, Button, Space, Typography, Progress, Switch, Tag } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useState, useRef, useEffect } from 'react';
 
 const { Text, Title } = Typography;
+
+// Component to handle text truncation with ellipsis
+const TruncatedText = ({ text, maxLines = 3 }: { text: string; maxLines?: number }) => {
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (textRef.current) {
+      const element = textRef.current;
+      setIsOverflowing(element.scrollHeight > element.clientHeight);
+    }
+  }, [text]);
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <div
+        ref={textRef}
+        style={{
+          fontSize: '14px',
+          color: '#8c8c8c',
+          display: '-webkit-box',
+          WebkitLineClamp: maxLines,
+          WebkitBoxOrient: 'vertical',
+          overflow: 'hidden',
+          lineHeight: '1.4',
+          maxHeight: `${maxLines * 1.4}em`,
+        }}
+      >
+        {text}
+      </div>
+      {isOverflowing && (
+        <span
+          style={{
+            position: 'absolute',
+            right: 0,
+            bottom: 0,
+            background: 'linear-gradient(to right, transparent, white 50%)',
+            paddingLeft: '20px',
+            color: '#8c8c8c',
+            fontSize: '14px',
+          }}
+        >
+          ...
+        </span>
+      )}
+    </div>
+  );
+};
 
 interface ClassCardProps {
   class: {
@@ -79,7 +128,7 @@ export default function ClassCard({ class: classItem, onView, onEdit, onDelete, 
         </Button>,
       ]}
     >
-      {/* Header với tên class và toggle */}
+      {/* Header with class name and toggle */}
       <div className="mb-4">
         <div style={{ 
           display: 'flex', 
@@ -99,9 +148,7 @@ export default function ClassCard({ class: classItem, onView, onEdit, onDelete, 
           )}
         </div>
         {classItem.prompt && (
-          <Text type="secondary" style={{ fontSize: '14px' }}>
-            {classItem.prompt}
-          </Text>
+          <TruncatedText text={classItem.prompt} maxLines={3} />
         )}
       </div>
 

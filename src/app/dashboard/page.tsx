@@ -31,7 +31,7 @@ export default function DashboardPage() {
   // Class status update mutation
   const classStatusUpdateMutation = useMutation({
     mutationFn: ({ classId, status }: { classId: string; status: string }) => {
-      // Tìm class để lấy thông tin hiện tại
+      // Find class to get current information
       const currentClass = classes.find((c: any) => c.id === classId);
       return editClass(classId, currentClass?.name || '', currentClass?.prompt, status as "active" | "inactive");
     },

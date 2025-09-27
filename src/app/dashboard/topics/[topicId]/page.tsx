@@ -110,7 +110,7 @@ export default function TopicDetailPage() {
     gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
-  // Check bot knowledge từ localStorage khi component mount
+  // Check bot knowledge from localStorage when component mounts
   useEffect(() => {
     const savedBotKnowledgeId = localStorage.getItem('botKnowledgeId');
     if (savedBotKnowledgeId) {
@@ -118,15 +118,15 @@ export default function TopicDetailPage() {
     }
   }, []);
 
-  // Check if knowledge is a leaf node (cấp con nhất - không có children)
+  // Check if knowledge is a leaf node (lowest level - no children)
   const isLeafNode = (knowledge: any) => {
     return knowledge && (!knowledge.children || knowledge.children.length === 0);
   };
 
-  // Handler cho việc set knowledge cho bot telegram
+  // Handler for setting knowledge for telegram bot
   const handleSetBotKnowledge = async (knowledge: any) => {
     if (!knowledge || !isLeafNode(knowledge)) {
-      message.warning('Chỉ có thể set knowledge cấp con nhất cho bot!');
+      message.warning('Only leaf knowledge can be set for bot!');
       return;
     }
 
@@ -135,9 +135,9 @@ export default function TopicDetailPage() {
       await setScheduleKnowledge(knowledge.id);
       setBotKnowledgeId(knowledge.id);
       localStorage.setItem('botKnowledgeId', knowledge.id);
-      message.success(`Đã set kiến thức "${knowledge.name}" cho bot Telegram thành công!`);
+      message.success(`Successfully set knowledge "${knowledge.name}" for Telegram bot!`);
     } catch (error) {
-      message.error('Có lỗi xảy ra khi set kiến thức cho bot!');
+      message.error('An error occurred while setting knowledge for bot!');
       console.error('Error setting bot knowledge:', error);
     }
     setIsSettingBotKnowledge(false);
@@ -418,7 +418,7 @@ export default function TopicDetailPage() {
       console.log('🔍 Theory API Response:', result); // Debug log
       setSubmittedTheoryResult(result);
       
-      // Tự động thêm câu hỏi đã trả lời vào lịch sử
+      // Automatically add answered question to history
       const answeredQuestion = {
         ...theoryQuestion,
         answer: theoryAnswer,
@@ -427,7 +427,7 @@ export default function TopicDetailPage() {
         aiFeedback: result.aiFeedback
       };
       setTheoryQuestionsHistory(prev => [answeredQuestion, ...prev]);
-      resetTheoryPagination(); // Reset về trang 1 khi có câu hỏi mới
+      resetTheoryPagination(); // Reset to page 1 when there are new questions
       
       message.success('Answer submitted successfully!');
     } catch (error: any) {
@@ -482,7 +482,7 @@ export default function TopicDetailPage() {
       console.log('🔍 Practice API Response:', result); // Debug log
       setSubmittedPracticeResult(result);
       
-      // Tự động thêm câu hỏi đã trả lời vào lịch sử
+      // Automatically add answered question to history
       const answeredQuestion = {
         ...practiceQuestion,
         answer: practiceAnswer,
@@ -491,7 +491,7 @@ export default function TopicDetailPage() {
         aiFeedback: result.aiFeedback
       };
       setPracticeQuestionsHistory(prev => [answeredQuestion, ...prev]);
-      resetPracticePagination(); // Reset về trang 1 khi có câu hỏi mới
+      resetPracticePagination(); // Reset to page 1 when there are new questions
       
       message.success('Answer submitted successfully!');
     } catch (error: any) {
@@ -501,7 +501,7 @@ export default function TopicDetailPage() {
     setIsSubmittingPracticeAnswer(false);
   };
 
-  // Reset functions để gen câu hỏi mới
+  // Reset functions to generate new questions
   const handleResetTheoryQuestion = () => {
     setTheoryQuestion(null);
     setTheoryAnswer('');
@@ -652,13 +652,13 @@ export default function TopicDetailPage() {
                               {isLeafNode(selectedKnowledgeForTree) ? (
                                 botKnowledgeId === selectedKnowledgeForTree.id ? (
                                   <Tag icon={<CheckCircleOutlined />} color="success">
-                                    Đang được sử dụng
+                                    Currently in use
                                   </Tag>
                                 ) : (
-                                  <Tag color="default">Chưa được set</Tag>
+                                  <Tag color="default">Not set</Tag>
                                 )
                               ) : (
-                                <Tag color="orange">Chỉ knowledge cấp con nhất mới có thể set</Tag>
+                                <Tag color="orange">Only leaf knowledge can be set</Tag>
                               )}
                             </Descriptions.Item>
                             <Descriptions.Item label="Created">
@@ -693,7 +693,7 @@ export default function TopicDetailPage() {
                             >
                               Edit Knowledge
                             </Button>
-                            {/* Set Bot Knowledge Button - chỉ hiển thị cho leaf nodes */}
+                            {/* Set Bot Knowledge Button - only show for leaf nodes */}
                             {isLeafNode(selectedKnowledgeForTree) && (
                               <Button
                                 type={botKnowledgeId === selectedKnowledgeForTree.id ? "default" : "primary"}
@@ -707,7 +707,7 @@ export default function TopicDetailPage() {
                                   color: botKnowledgeId === selectedKnowledgeForTree.id ? 'white' : undefined,
                                 }}
                               >
-                                {botKnowledgeId === selectedKnowledgeForTree.id ? 'Đã set Bot' : 'Set Bot'}
+                                {botKnowledgeId === selectedKnowledgeForTree.id ? 'Bot Set' : 'Set Bot'}
                               </Button>
                             )}
                             <Button
@@ -1435,10 +1435,10 @@ export default function TopicDetailPage() {
           setEditKnowledgeModalOpen(false)
           setSelectedKnowledge(null)
 
-          // Refetch queries để đảm bảo data consistency
+          // Refetch queries to ensure data consistency
           await queryClient.refetchQueries({ queryKey: ['topic-knowledges', topicId] })
         }}
-        // Truyền callback để update selectedKnowledgeForTree ngay lập tức
+        // Pass callback to update selectedKnowledgeForTree immediately
         onKnowledgeUpdate={(updatedKnowledge) => {
           if (selectedKnowledgeForTree && selectedKnowledgeForTree.id === updatedKnowledge.id) {
             setSelectedKnowledgeForTree((prev: any) => ({ ...prev, prompt: updatedKnowledge.prompt }))

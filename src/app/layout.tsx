@@ -9,7 +9,6 @@ import TanstackProvider from "@/components/providers/TanstackProvider";
 import { PropsWithChildren } from "react";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
 import { App } from "antd";
-import UserBootstrap from "@/components/features/user/UserBootstrap";
 import { ToastContainer } from 'react-toastify';
 export const metadata: Metadata = {
   title: "AStudy - AI-Powered Learning Platform",
@@ -26,7 +25,6 @@ export default function RootLayout({ children }: PropsWithChildren) {
           <AntdRegistry>
             <AStudyAppProvider>
               <TanstackProvider>
-                <UserBootstrap />
                 <App>{children}</App>
               </TanstackProvider>
             </AStudyAppProvider>

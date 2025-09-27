@@ -52,7 +52,7 @@ export default function PageContainer({
 
   const breadcrumbItems = breadcrumbProp?.items || generateBreadcrumb();
 
-  // Nếu là trang chủ thì không render breadcrumb
+  // If it's the home page, don't render breadcrumb
   const isHome = pathname === '/';
 
   return (

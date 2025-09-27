@@ -73,7 +73,7 @@ export default function KnowledgeCard({
         <Text>{truncatedContent}</Text>
       </div>
 
-      {/* Số liệu chính và thông tin phụ trong body, dùng Descriptions 1 cột */}
+      {/* Main metrics and additional information in body, using single column Descriptions */}
       <Descriptions
         column={1}
         size="middle"

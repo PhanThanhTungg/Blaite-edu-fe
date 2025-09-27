@@ -31,7 +31,7 @@ export default function TopicForm({
   const queryClient = useQueryClient();
   const { message } = App.useApp()
 
-  // TODO: Thay thế các chỗ gọi serverActions.createTopic, serverActions.updateTopic bằng API tương ứng khi đã có.
+  // TODO: Replace serverActions.createTopic, serverActions.updateTopic calls with corresponding API when available.
 
   const updateTopicMutation = useMutation({
     mutationFn: (values: TopicFormValues) => {
@@ -96,7 +96,7 @@ export default function TopicForm({
     },
   ];
 
-  // Thay thế logic submit tạo topic:
+  // Replace topic creation submit logic:
   interface CreateTopicInput {
     name: string;
     prompt?: string;

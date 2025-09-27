@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { getUser } from '@/services/auth.service';
 
 // Define User type
@@ -8,7 +9,7 @@ interface User {
   id: string;
   clerkId: string;
   telegramId: string;
-  intervalSendMessage: number; // tính theo phút
+  intervalSendMessage: number; // in minutes
   scheduleKnowledgeId: string;
   prompt: string;
   timezone: string;
@@ -33,6 +34,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { isLoaded, isSignedIn } = useAuth();
 
   // Function to refresh user data
   const refreshUser = async () => {
@@ -49,10 +51,16 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Load user on component mount
+  // Load user when Clerk is loaded and user is signed in
   useEffect(() => {
-    refreshUser();
-  }, []);
+    if (isLoaded && isSignedIn) {
+      refreshUser();
+    } else if (isLoaded && !isSignedIn) {
+      // User is not signed in, clear user data
+      setUser(null);
+      setIsLoading(false);
+    }
+  }, [isLoaded, isSignedIn]);
 
   const value = {
     user,

@@ -26,9 +26,9 @@ export default function UserProfile({ user }: UserProfileProps) {
 
   const updateProfileMutation = useMutation({
     mutationFn: (values: ProfileFormValues) =>
-      // TODO: Thay thế các chỗ gọi serverActions.updateUserProfile bằng API tương ứng khi đã có.
+      // TODO: Replace serverActions.updateUserProfile calls with corresponding API when available.
       // serverActions.updateUserProfile(values.name, values.email),
-      // Gợi ý: Sử dụng hàm API tương ứng từ hooks/api.ts, ví dụ:
+      // Suggestion: Use corresponding API function from hooks/api.ts, for example:
       // await api.put('/api/user', { name: values.name, email: values.email })
       Promise.resolve(), // Placeholder for API call
     onSuccess: () => {

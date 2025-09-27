@@ -19,8 +19,8 @@ export default function Footer() {
       boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.1)'
     }}>
       <Alert
-        message="Thông báo"
-        description="Nền tảng đang trong quá trình thử nghiệm dùng API Gemini free, thỉnh thoảng sẽ có lỗi overload model, vui lòng thử lại nếu gặp lỗi"
+        message="Notice"
+        description="The platform is currently in testing phase using free Gemini API, occasionally there may be model overload errors, please try again if you encounter errors"
         type="info"
         icon={<InfoCircleOutlined />}
         showIcon

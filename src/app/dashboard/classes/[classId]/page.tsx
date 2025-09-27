@@ -75,12 +75,12 @@ export default function ClassDetailPage() {
   // Gen Topic by AI mutation
   const genTopicMutation = useMutation({
     mutationFn: () => {
-      message.loading({ content: 'Đang tạo topics bằng AI...', key: 'genTopic' });
+      message.loading({ content: 'Creating topics with AI...', key: 'genTopic' });
       return genTopicByAi(classId);
     },
     onSuccess: (data) => {
       message.success({ 
-        content: `Đã tạo thành công ${data?.length || 'một số'} topics bằng AI!`, 
+        content: `Successfully created ${data?.length || 'some'} topics with AI!`, 
         key: 'genTopic' 
       });
       // Refresh topics list

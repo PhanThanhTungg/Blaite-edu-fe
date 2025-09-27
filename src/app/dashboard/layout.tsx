@@ -32,11 +32,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             }}
           >
             <Title level={3} style={{ marginBottom: 16 }}>
-              Bạn cần đăng nhập để truy cập Dashboard
+              You need to sign in to access Dashboard
             </Title>
             <SignInButton mode="modal">
               <Button type="primary" size="large">
-                Đăng nhập
+                Sign In
               </Button>
             </SignInButton>
           </Card>

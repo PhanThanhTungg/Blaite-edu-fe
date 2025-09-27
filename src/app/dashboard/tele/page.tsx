@@ -7,6 +7,7 @@ import { RobotOutlined, SendOutlined, CheckCircleOutlined, InfoCircleOutlined, C
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/contexts/UserContext';
 import { useTheme } from '@/components/providers/HappyThemeProvider';
+import { useAuth } from '@clerk/nextjs';
 import { toast } from 'react-toastify';
 import { changeIntervalSendQuestion, setScheduleTypeQuestion } from '@/services/bot.service';
 
@@ -25,8 +26,9 @@ export default function TeleBotSetupPage() {
   const [isUpdatingQuestionType, setIsUpdatingQuestionType] = useState(false);
   const [selectedQuestionType, setSelectedQuestionType] = useState<"theory" | "practice">("theory");
 
-  const { user, refreshUser } = useUser();
+  const { user, refreshUser, isLoading: isUserLoading } = useUser();
   const { colorScheme } = useTheme();
+  const { isLoaded: isClerkLoaded } = useAuth();
 
   // Load question type from localStorage when component mounts
   useEffect(() => {
@@ -37,12 +39,14 @@ export default function TeleBotSetupPage() {
   }, []);
 
   const handleConnect = async (values: any) => {
-    if(user?.id) {
-      const linkDirectToTelegram = `https://t.me/${process.env.NEXT_PUBLIC_BOT_TELE_NAME}?start=${user?.id}`;
-      window.open(linkDirectToTelegram, '_blank');
+    // Double check user data is available
+    if (!user?.id) {
+      toast.error('Please wait for user data to load, or try refreshing the page');
       return;
     }
-    toast.error('Please login to connect telegram bot');
+    
+    const linkDirectToTelegram = `https://t.me/${process.env.NEXT_PUBLIC_BOT_TELE_NAME}?start=${user.id}`;
+    window.open(linkDirectToTelegram, '_blank');
   };
 
   const handleRefreshStatus = async () => {
@@ -59,7 +63,7 @@ export default function TeleBotSetupPage() {
   };
 
   const handleIntervalChange = async (value: number | null) => {
-    if (value && value !== user?.intervalSendMessage && value >= 0 && value <= 1440) {
+    if (value && value !== user?.intervalSendMessage) {
       try {
         setIsUpdatingInterval(true);
         await changeIntervalSendQuestion(value);
@@ -94,6 +98,56 @@ export default function TeleBotSetupPage() {
       }
     }
   };
+
+  // Show loading state while Clerk or user data is being fetched
+  if (!isClerkLoaded || isUserLoading) {
+    return (
+      <PageContainer
+        title="Telegram Bot Setup"
+        breadcrumb={{
+          items: [
+            { title: '🏠', href: '/dashboard' },
+            { title: 'Bot Setup' },
+          ],
+        }}
+        style={{ 
+          background: colorScheme === 'dark' ? '#141414' : '#f5f5f5',
+          minHeight: '100vh',
+          padding: '24px'
+        }}
+      >
+        <div style={{ 
+          maxWidth: 800, 
+          margin: '0 auto',
+          background: colorScheme === 'dark' ? '#1f1f1f' : '#ffffff',
+          borderRadius: '8px',
+          boxShadow: colorScheme === 'dark' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          padding: '40px',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            width: 60,
+            height: 60,
+            borderRadius: '50%',
+            background: colorScheme === 'dark' ? '#303030' : '#f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px'
+          }}>
+            <RobotOutlined style={{ fontSize: 24, color: colorScheme === 'dark' ? '#fff' : '#666' }} />
+          </div>
+          <Title level={2} style={{ color: colorScheme === 'dark' ? '#fff' : '#333', margin: '0 0 8px 0', fontSize: 24 }}>
+            Loading Bot Setup...
+          </Title>
+          <Text style={{ color: colorScheme === 'dark' ? '#ccc' : '#666', fontSize: 14 }}>
+            Please wait while we load your bot configuration
+          </Text>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer
@@ -310,7 +364,6 @@ export default function TeleBotSetupPage() {
                     }
                   }}
                   min={1}
-                  max={1440}
                   disabled={!user?.telegramId || isUpdatingInterval}
                   addonAfter="minutes"
                   style={{
@@ -331,7 +384,7 @@ export default function TeleBotSetupPage() {
                 </Text>
               )}
               <Text style={{ fontSize: 11, color: colorScheme === 'dark' ? '#999' : '#999' }}>
-                Press Enter or click outside to save • Range: 1-1440 minutes
+                Press Enter or click outside to save 
               </Text>
             </div>
 

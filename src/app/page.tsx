@@ -40,20 +40,20 @@ export default function Home() {
             }}
           >
             <Title level={2} style={{ marginBottom: 16 }}>
-              AStudy - Nền tảng học tập cá nhân hóa
+              AStudy - Personalized Learning Platform
             </Title>
             <Paragraph style={{ fontSize: '16px', marginBottom: 32, color: '#666' }}>
-              Quản lý chủ đề, theo dõi tiến trình, luyện tập thông minh và phân tích hiệu suất học tập của bạn. Đăng nhập để bắt đầu hành trình học tập hiệu quả!
+              Manage topics, track progress, practice intelligently and analyze your learning performance. Sign in to start your effective learning journey!
             </Paragraph>
             <Space size="middle">
               <SignInButton mode="modal">
                 <Button type="primary" size="large">
-                  Đăng nhập
+                  Sign In
                 </Button>
               </SignInButton>
               <SignUpButton mode="modal">
                 <Button size="large">
-                  Đăng ký
+                  Sign Up
                 </Button>
               </SignUpButton>
             </Space>

@@ -38,7 +38,7 @@ export default function KnowledgeForm({
   const queryClient = useQueryClient();
   const {message} = App.useApp();
 
-  // TODO: Thay thế các chỗ gọi serverActions.createKnowledge, serverActions.updateKnowledge bằng API tương ứng khi đã có.
+  // TODO: Replace serverActions.createKnowledge, serverActions.updateKnowledge calls with corresponding API when available.
 
   const updateKnowledgeMutation = useMutation({
     mutationFn: (values: KnowledgeFormValues) =>
@@ -46,7 +46,7 @@ export default function KnowledgeForm({
     onSuccess: async (updatedKnowledge, variables) => {
       message.success('Knowledge updated successfully!');
       
-      // Gọi callback để update UI ngay lập tức
+      // Call callback to update UI immediately
       if (onKnowledgeUpdate && knowledgeId) {
         onKnowledgeUpdate({ id: knowledgeId, prompt: variables.prompt });
       }
