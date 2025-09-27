@@ -20,8 +20,8 @@ export default function ProLayoutWrapper({ children }: ProLayoutWrapperProps) {
 
   // Add click handler to title after component mounts
   useEffect(() => {
-    let titleElement = null;
-    let clickHandler = null;
+    let titleElement: HTMLElement | null = null;
+    let clickHandler: (() => void) | null = null;
     
     // Wait for DOM to be ready then find title element
     const timer = setTimeout(() => {

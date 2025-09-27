@@ -12,6 +12,7 @@ import { getKnowledges } from "@/services/knowledge.service";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space, Breadcrumb, message } from "antd";
 import { PlusOutlined, HomeOutlined, RobotOutlined } from "@ant-design/icons";
+import { getContextualErrorMessage } from "@/lib/utils/error.utils";
 import TopicCard from "@/components/features/topic/TopicCard";
 import CreateTopicModal from "@/components/features/topic/CreateTopicModal";
 import EditTopicModal from "@/components/features/topic/EditTopicModal";
@@ -55,11 +56,13 @@ export default function ClassDetailPage() {
       // Return a context object with the snapshotted value
       return { previousTopics };
     },
-    onError: (err, variables, context) => {
+    onError: (err: any, variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousTopics) {
         queryClient.setQueryData(['topics', classId], context.previousTopics);
       }
+      const errorMessage = getContextualErrorMessage(err, 'updating topic status');
+      message.error(errorMessage);
       console.error('Error updating topic status:', err);
     },
     onSettled: () => {
@@ -84,10 +87,11 @@ export default function ClassDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['topics', classId] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error generating topics:', error);
+      const errorMessage = getContextualErrorMessage(error, 'generating topics with AI');
       message.error({ 
-        content: 'Có lỗi xảy ra khi tạo topics bằng AI. Vui lòng thử lại!', 
+        content: errorMessage, 
         key: 'genTopic' 
       });
     },
@@ -183,10 +187,6 @@ export default function ClassDetailPage() {
           items: [
             {
               title: <HomeOutlined />,
-              href: '/dashboard',
-            },
-            {
-              title: 'Classes',
               href: '/dashboard',
             },
             {

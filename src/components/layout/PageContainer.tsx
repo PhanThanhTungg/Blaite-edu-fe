@@ -5,6 +5,7 @@ import { BreadcrumbItemType } from 'antd/es/breadcrumb/Breadcrumb';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
 import { Breadcrumb } from 'antd';
+import Link from 'next/link';
 
 interface PageContainerProps {
   children: ReactNode;
@@ -49,7 +50,7 @@ export default function PageContainer({
     return breadcrumbItems;
   };
 
-  const breadcrumbItems = breadcrumbProp || generateBreadcrumb();
+  const breadcrumbItems = breadcrumbProp?.items || generateBreadcrumb();
 
   // Nếu là trang chủ thì không render breadcrumb
   const isHome = pathname === '/';
@@ -62,10 +63,27 @@ export default function PageContainer({
       className={className}
     >
       {breadcrumbProp !== false && !isHome && (
-        <Breadcrumb
-          className="mb-2"
-          items={breadcrumbItems}
-        />
+        <div style={{ marginBottom: '8px' }}>
+          <Breadcrumb
+            items={breadcrumbItems}
+            style={{
+              maxWidth: '100%',
+              overflow: 'hidden'
+            }}
+          />
+          <style jsx>{`
+            :global(.ant-breadcrumb-link) {
+              max-width: 200px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+              display: inline-block;
+            }
+            :global(.ant-breadcrumb-separator) {
+              margin: 0 8px;
+            }
+          `}</style>
+        </div>
       )}
       {children}
     </AntPageContainer>

@@ -4,6 +4,7 @@ import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import api from '@/services/axios-customize.service';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 interface TopicFormValues {
   name: string;
@@ -58,8 +59,9 @@ export default function TopicForm({
       message.success('Topic updated successfully!');
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error('Failed to update topic. Please try again.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'updating topic');
+      message.error(errorMessage);
       console.error('Error updating topic:', error);
     },
   });
@@ -126,8 +128,9 @@ export default function TopicForm({
       message.success('Topic created successfully!');
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error('Failed to create topic.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'creating topic');
+      message.error(errorMessage);
       console.error('Error creating topic:', error);
     }
   });

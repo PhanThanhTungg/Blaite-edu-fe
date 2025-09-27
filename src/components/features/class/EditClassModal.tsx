@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { editClass } from '@/services/class.service';
 import { useEffect } from 'react';
 import { App } from 'antd';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 interface EditClassModalProps {
   open: boolean;
@@ -30,8 +31,10 @@ export default function EditClassModal({ open, class: classItem, onCancel, onSuc
       message.success('Class updated successfully!');
       onSuccess();
     },
-    onError: () => {
-      message.error('Failed to update class.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'updating class');
+      message.error(errorMessage);
+      console.error('Error updating class:', error);
     },
   });
 

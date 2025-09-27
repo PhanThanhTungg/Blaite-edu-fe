@@ -4,6 +4,7 @@ import { Modal, Typography } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
 import { deleteKnowledge } from "@/services/knowledge.service";
+import { getContextualErrorMessage } from "@/lib/utils/error.utils";
 
 const { Text } = Typography;
 
@@ -37,8 +38,10 @@ export default function DeleteKnowledgeModal({
       message.success("Knowledge deleted successfully!");
       onSuccess?.();
     },
-    onError: () => {
-      message.error("Failed to delete knowledge.");
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'deleting knowledge');
+      message.error(errorMessage);
+      console.error('Error deleting knowledge:', error);
     },
   });
 

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { App } from 'antd';
 import { createClass } from '@/services/class.service';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 interface CreateClassModalProps {
   open: boolean;
@@ -26,8 +27,10 @@ export default function CreateClassModal({ open, onCancel, onSuccess }: CreateCl
       form.resetFields();
       onSuccess();
     },
-    onError: () => {
-      message.error('Failed to create class.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'creating class');
+      message.error(errorMessage);
+      console.error('Error creating class:', error);
     },
   });
 

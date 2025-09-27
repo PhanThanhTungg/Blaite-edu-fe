@@ -3,9 +3,9 @@
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
-import { PageContainer } from '@ant-design/pro-components'
-import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, message, theme, Pagination, Select, Space } from 'antd'
-import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import PageContainer from '@/components/layout/PageContainer'
+import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, theme, Pagination, Select, Space, App } from 'antd'
+import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined, HomeOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
 import { getKnowledges, generateKnowledge, getKnowledgeDetail, deleteKnowledge, generateTheory } from '@/services/knowledge.service';
@@ -20,6 +20,7 @@ import EditKnowledgeModal from '@/components/features/knowledge/EditKnowledgeMod
 import DeleteKnowledgeModal from '@/components/features/knowledge/DeleteKnowledgeModal';
 import KnowledgeTree from '@/components/features/knowledge/KnowledgeTree';
 import ErrorModal from '@/components/ui/ErrorModal';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 const { Title, Text, Paragraph } = Typography
 
@@ -38,6 +39,7 @@ export default function TopicDetailPage() {
   const topicId = params.topicId as string
   const queryClient = useQueryClient()
   const { token } = theme.useToken()
+  const { message } = App.useApp()
 
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -147,8 +149,11 @@ export default function TopicDetailPage() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['topic-knowledges', topicId] });
       setIsGenerating(false);
+      message.success('Knowledge generated successfully!');
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'generating knowledge');
+      message.error(errorMessage);
       console.error('Error generating knowledge:', error);
       setIsGenerating(false);
     },
@@ -205,6 +210,12 @@ export default function TopicDetailPage() {
       if (updated && updated.theory && selectedKnowledgeForTree && updated.id === selectedKnowledgeForTree.id) {
         setSelectedKnowledgeForTree((prev: any) => ({ ...prev, theory: updated.theory }))
       }
+      message.success('Theory generated successfully!');
+    },
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'generating theory');
+      message.error(errorMessage);
+      console.error('Error generating theory:', error);
     },
   })
 
@@ -535,29 +546,29 @@ export default function TopicDetailPage() {
         title={topic.name}
         breadcrumb={{
           items: [
-            { path: '/', breadcrumbName: 'Trang chủ' },
-            { path: '/dashboard', breadcrumbName: 'Dashboard' },
-            { path: `/dashboard/classes/${topic.classId}`, breadcrumbName: classData?.name || 'Class' },
-            { path: `/dashboard/topics`, breadcrumbName: 'Topics' },
-            { path: `/dashboard/topics/${topicId}`, breadcrumbName: topic.name },
+            { title: <HomeOutlined />, href: '/' },
+            { title: classData?.name || 'Class', href: `/dashboard/classes/${topic.classId}` },
+            { title: topic.name },
           ],
         }}
-        extra={[
-          <Button key="create" icon={<PlusOutlined />} onClick={handleCreateKnowledge} loading={isCreatingKnowledge} disabled={isCreatingKnowledge}>
-            {isCreatingKnowledge ? 'Creating...' : 'Create Knowledge'}
-          </Button>,
-          <Button key="generate" type="primary" loading={isGenerating} onClick={handleGenerateKnowledge}>
-            Generate Knowledge
-          </Button>,
-          <Button key="edit" icon={<EditOutlined />} onClick={handleEditTopic}>
-            Edit Topic
-          </Button>,
-          <Button key="delete" danger icon={<DeleteOutlined />} onClick={handleDeleteTopic}>
-            Delete Topic
-          </Button>,
-        ]}
+        header={{
+          extra: [
+            <Button key="create" icon={<PlusOutlined />} onClick={handleCreateKnowledge} loading={isCreatingKnowledge} disabled={isCreatingKnowledge}>
+              {isCreatingKnowledge ? 'Creating...' : 'Create Knowledge'}
+            </Button>,
+            <Button key="generate" type="primary" loading={isGenerating} onClick={handleGenerateKnowledge}>
+              Generate Knowledge
+            </Button>,
+            <Button key="edit" icon={<EditOutlined />} onClick={handleEditTopic}>
+              Edit Topic
+            </Button>,
+            <Button key="delete" danger icon={<DeleteOutlined />} onClick={handleDeleteTopic}>
+              Delete Topic
+            </Button>,
+          ],
+        }}
       >
-        <Row gutter={[24, 24]}>
+        <Row gutter={[24, 24]} className="mt-3">
           {/* Left Column - Knowledge Tree */}
           <Col xs={24} md={8}>
             <Card title="📚 Knowledge Structure" size="small">

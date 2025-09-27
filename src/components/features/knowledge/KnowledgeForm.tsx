@@ -5,6 +5,7 @@ import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { useEffect } from 'react';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 interface KnowledgeFormValues {
   name: string;
@@ -66,8 +67,9 @@ export default function KnowledgeForm({
       
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error('Failed to update knowledge. Please try again.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'updating knowledge');
+      message.error(errorMessage);
       console.error('Error updating knowledge:', error);
     },
   });
@@ -125,8 +127,10 @@ export default function KnowledgeForm({
       message.success('Knowledge created successfully!');
       onSuccess?.();
     },
-    onError: () => {
-      message.error('Failed to create knowledge.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'creating knowledge');
+      message.error(errorMessage);
+      console.error('Error creating knowledge:', error);
     }
   });
 

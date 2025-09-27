@@ -4,6 +4,7 @@ import { Modal, Typography } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
 import { deleteClass } from '@/services/class.service';
+import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 const { Text } = Typography;
 
@@ -32,8 +33,10 @@ export default function DeleteClassModal({
       message.success('Class deleted successfully!');
       onSuccess?.();
     },
-    onError: () => {
-      message.error('Failed to delete class.');
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'deleting class');
+      message.error(errorMessage);
+      console.error('Error deleting class:', error);
     },
   });
 

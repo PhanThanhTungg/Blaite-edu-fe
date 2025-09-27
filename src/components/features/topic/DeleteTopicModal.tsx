@@ -4,6 +4,7 @@ import { Modal, Typography } from "antd";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { App } from "antd";
 import api from "@/services/axios-customize.service";
+import { getContextualErrorMessage } from "@/lib/utils/error.utils";
 
 const { Text } = Typography;
 
@@ -39,8 +40,9 @@ export default function DeleteTopicModal({
       message.success("Topic deleted successfully!");
       onSuccess?.();
     },
-    onError: (error) => {
-      message.error("Failed to delete topic.");
+    onError: (error: any) => {
+      const errorMessage = getContextualErrorMessage(error, 'deleting topic');
+      message.error(errorMessage);
       console.error('Error deleting topic:', error);
     },
   });
