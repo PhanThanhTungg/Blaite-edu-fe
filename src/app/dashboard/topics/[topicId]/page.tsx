@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { useQueryClient } from '@tanstack/react-query'
 import PageContainer from '@/components/layout/PageContainer'
-import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, theme, Pagination, Select, Space, App } from 'antd'
+import { Card, Descriptions, Tag, Button, Spin, Alert, Typography, Row, Col, Skeleton, Tabs, Input, theme, Pagination, Select, Space, App, Tooltip } from 'antd'
 import { EditOutlined, DeleteOutlined, PlusOutlined, BookOutlined, FileTextOutlined, RobotOutlined, CheckCircleOutlined, HomeOutlined } from '@ant-design/icons'
 import { useState, useEffect } from 'react'
 import { getTopic } from '@/services/topic.service';
@@ -539,6 +539,26 @@ export default function TopicDetailPage() {
 
   return (
     <>
+      <style jsx global>{`
+        .responsive-tabs .ant-tabs-tab {
+          font-size: 12px;
+          padding: 8px 12px;
+        }
+        
+        @media (max-width: 640px) {
+          .responsive-tabs .ant-tabs-tab {
+            font-size: 11px;
+            padding: 6px 8px;
+          }
+          
+          .responsive-tabs .ant-tabs-tab-btn {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+          }
+        }
+      `}</style>
       <PageContainer
         title={topic.name}
         breadcrumb={{
@@ -550,24 +570,56 @@ export default function TopicDetailPage() {
         }}
         header={{
           extra: [
-            <Button key="create" icon={<PlusOutlined />} onClick={handleCreateKnowledge} loading={isCreatingKnowledge} disabled={isCreatingKnowledge}>
-              {isCreatingKnowledge ? 'Creating...' : 'Create Knowledge'}
-            </Button>,
-            <Button key="generate" type="primary" loading={isGenerating} onClick={handleGenerateKnowledge}>
-              Generate Knowledge
-            </Button>,
-            <Button key="edit" icon={<EditOutlined />} onClick={handleEditTopic}>
-              Edit Topic
-            </Button>,
-            <Button key="delete" danger icon={<DeleteOutlined />} onClick={handleDeleteTopic}>
-              Delete Topic
-            </Button>,
+            <Space key="header-actions" wrap size={[8, 8]}>
+              <Button 
+                key="create" 
+                icon={<PlusOutlined />} 
+                onClick={handleCreateKnowledge} 
+                loading={isCreatingKnowledge} 
+                disabled={isCreatingKnowledge}
+                size="small"
+              >
+                <span className="hidden sm:inline">
+                  {isCreatingKnowledge ? 'Creating...' : 'Create Knowledge'}
+                </span>
+                <span className="sm:hidden">Create</span>
+              </Button>,
+              <Button 
+                key="generate" 
+                type="primary" 
+                loading={isGenerating} 
+                onClick={handleGenerateKnowledge}
+                size="small"
+              >
+                <span className="hidden sm:inline">Generate Knowledge</span>
+                <span className="sm:hidden">Generate</span>
+              </Button>,
+              <Button 
+                key="edit" 
+                icon={<EditOutlined />} 
+                onClick={handleEditTopic}
+                size="small"
+              >
+                <span className="hidden sm:inline">Edit Topic</span>
+                <span className="sm:hidden">Edit</span>
+              </Button>,
+              <Button 
+                key="delete" 
+                danger 
+                icon={<DeleteOutlined />} 
+                onClick={handleDeleteTopic}
+                size="small"
+              >
+                <span className="hidden sm:inline">Delete Topic</span>
+                <span className="sm:hidden">Delete</span>
+              </Button>,
+            </Space>
           ],
         }}
       >
-        <Row gutter={[24, 24]} className="mt-3">
+        <Row gutter={[16, 16]} className="mt-3">
           {/* Left Column - Knowledge Tree */}
-          <Col xs={24} md={8}>
+          <Col xs={24} lg={8} xl={6}>
             <Card title="📚 Knowledge Structure" size="small">
               {knowledges.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '48px 0' }}>
@@ -591,11 +643,15 @@ export default function TopicDetailPage() {
           </Col>
 
           {/* Right Column - Knowledge Details */}
-          <Col xs={24} md={16}>
+          <Col xs={24} lg={16} xl={18}>
             {selectedKnowledgeForTree ? (
               <Card size="small">
                 <Tabs
                   activeKey={activeTab}
+                  type="card"
+                  size="small"
+                  tabPosition="top"
+                  className="responsive-tabs"
                   onChange={(key) => {
                     setActiveTab(key)
                     // Auto load questions history when switching to exercise tabs
@@ -663,58 +719,89 @@ export default function TopicDetailPage() {
                             </Descriptions.Item>
                           </Descriptions>
 
+                          {/* Notice for non-leaf nodes */}
+                          {selectedKnowledgeForTree.children && selectedKnowledgeForTree.children.length > 0 && (
+                            <div style={{ 
+                              marginTop: '12px', 
+                              padding: '8px 12px', 
+                              backgroundColor: '#f6ffed', 
+                              border: '1px solid #b7eb8f', 
+                              borderRadius: '4px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <span style={{ fontSize: '16px' }}>ℹ️</span>
+                              <Text style={{ color: '#52c41a', fontWeight: '500', fontSize: '12px', margin: 0 }}>
+                                Only leaf nodes can generate theory content and questions
+                              </Text>
+                            </div>
+                          )}
+
                           {/* Actions Section */}
                           <div style={{
                             marginTop: '24px',
                             paddingTop: '16px',
                             borderTop: `1px solid ${token.colorBorder}`,
-                            display: 'flex',
-                            gap: '8px'
                           }}>
-                            <Button
-                              type="default"
-                              icon={<PlusOutlined />}
-                              onClick={() => {
-                                setCreateChildParent(selectedKnowledgeForTree)
-                                setCreateKnowledgeModalOpen(true)
-                              }}
-                              loading={isCreatingKnowledge}
-                              disabled={isCreatingKnowledge}
-                            >
-                              Create Child
-                            </Button>
-                            <Button
-                              type="default"
-                              icon={<EditOutlined />}
-                              onClick={() => handleEditKnowledge(selectedKnowledgeForTree)}
-                            >
-                              Edit Knowledge
-                            </Button>
-                            {/* Set Bot Knowledge Button - only show for leaf nodes */}
-                            {isLeafNode(selectedKnowledgeForTree) && (
+                            <Space wrap size={[8, 8]} style={{ width: '100%' }}>
                               <Button
-                                type={botKnowledgeId === selectedKnowledgeForTree.id ? "default" : "primary"}
-                                icon={<RobotOutlined />}
-                                loading={isSettingBotKnowledge}
-                                onClick={() => handleSetBotKnowledge(selectedKnowledgeForTree)}
-                                disabled={botKnowledgeId === selectedKnowledgeForTree.id}
-                                style={{
-                                  backgroundColor: botKnowledgeId === selectedKnowledgeForTree.id ? '#52c41a' : undefined,
-                                  borderColor: botKnowledgeId === selectedKnowledgeForTree.id ? '#52c41a' : undefined,
-                                  color: botKnowledgeId === selectedKnowledgeForTree.id ? 'white' : undefined,
+                                type="default"
+                                icon={<PlusOutlined />}
+                                onClick={() => {
+                                  setCreateChildParent(selectedKnowledgeForTree)
+                                  setCreateKnowledgeModalOpen(true)
                                 }}
+                                loading={isCreatingKnowledge}
+                                disabled={isCreatingKnowledge}
+                                size="small"
                               >
-                                {botKnowledgeId === selectedKnowledgeForTree.id ? 'Bot Set' : 'Set Bot'}
+                                <span className="hidden sm:inline">Create Child</span>
+                                <span className="sm:hidden">Child</span>
                               </Button>
-                            )}
-                            <Button
-                              type="primary"
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleDeleteKnowledge(selectedKnowledgeForTree.id)}
-                            >
-                              Delete Knowledge
-                            </Button>
+                              <Button
+                                type="default"
+                                icon={<EditOutlined />}
+                                onClick={() => handleEditKnowledge(selectedKnowledgeForTree)}
+                                size="small"
+                              >
+                                <span className="hidden sm:inline">Edit Knowledge</span>
+                                <span className="sm:hidden">Edit</span>
+                              </Button>
+                              {/* Set Bot Knowledge Button - only show for leaf nodes */}
+                              {isLeafNode(selectedKnowledgeForTree) && (
+                                <Button
+                                  type={botKnowledgeId === selectedKnowledgeForTree.id ? "default" : "primary"}
+                                  icon={<RobotOutlined />}
+                                  loading={isSettingBotKnowledge}
+                                  onClick={() => handleSetBotKnowledge(selectedKnowledgeForTree)}
+                                  disabled={botKnowledgeId === selectedKnowledgeForTree.id}
+                                  size="small"
+                                  style={{
+                                    backgroundColor: botKnowledgeId === selectedKnowledgeForTree.id ? '#52c41a' : undefined,
+                                    borderColor: botKnowledgeId === selectedKnowledgeForTree.id ? '#52c41a' : undefined,
+                                    color: botKnowledgeId === selectedKnowledgeForTree.id ? 'white' : undefined,
+                                  }}
+                                >
+                                  <span className="hidden sm:inline">
+                                    {botKnowledgeId === selectedKnowledgeForTree.id ? 'Bot Set' : 'Set Bot'}
+                                  </span>
+                                  <span className="sm:hidden">
+                                    {botKnowledgeId === selectedKnowledgeForTree.id ? 'Set' : 'Bot'}
+                                  </span>
+                                </Button>
+                              )}
+                              <Button
+                                type="primary"
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleDeleteKnowledge(selectedKnowledgeForTree.id)}
+                                size="small"
+                              >
+                                <span className="hidden sm:inline">Delete Knowledge</span>
+                                <span className="sm:hidden">Delete</span>
+                              </Button>
+                            </Space>
                           </div>
 
                           {/* Children Knowledge List for Parent Nodes */}
@@ -832,9 +919,14 @@ export default function TopicDetailPage() {
                       {
                         key: 'theory-exercise',
                         label: (
-                          <span>
-                            📝 Theory Exercise
-                          </span>
+                          <Tooltip 
+                            title={!selectedKnowledgeForTree.theory ? "Generate theory content to continue" : ""}
+                            placement="top"
+                          >
+                            <span>
+                              📝 Theory Exercise
+                            </span>
+                          </Tooltip>
                         ),
                         children: (
                           <div>
@@ -946,8 +1038,14 @@ export default function TopicDetailPage() {
                                       pageSize={theoryPageSize}
                                       showSizeChanger
                                       showQuickJumper
-                                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} questions`}
+                                      showTotal={(total, range) => (
+                                        <span className="hidden sm:inline">
+                                          {`${range[0]}-${range[1]} of ${total} questions`}
+                                        </span>
+                                      )}
                                       pageSizeOptions={['2', '4', '6', '8', '10']}
+                                      size="small"
+                                      simple={false}
                                       onChange={(page, size) => {
                                         setTheoryCurrentPage(page)
                                         if (size !== theoryPageSize) {
@@ -986,8 +1084,10 @@ export default function TopicDetailPage() {
                                   icon={<FileTextOutlined />}
                                   onClick={handleGenerateTheoryQuestion}
                                   loading={isGeneratingTheoryQuestion}
+                                  className="w-full sm:w-auto"
                                 >
-                                  Generate Theory Exercise
+                                  <span className="hidden sm:inline">Generate Theory Exercise</span>
+                                  <span className="sm:hidden">Generate Theory</span>
                                 </Button>
                               </div>
                             )}
@@ -1043,6 +1143,7 @@ export default function TopicDetailPage() {
                                     onClick={handleSubmitTheoryAnswer}
                                     loading={isSubmittingTheoryAnswer}
                                     disabled={!theoryAnswer.trim() || submittedTheoryResult !== null}
+                                    className="w-full sm:w-auto"
                                   >
                                     {submittedTheoryResult ? 'Answer Submitted' : 'Submit Answer'}
                                   </Button>
@@ -1098,8 +1199,10 @@ export default function TopicDetailPage() {
                                         icon={<FileTextOutlined />}
                                         onClick={handleResetTheoryQuestion}
                                         size="large"
+                                        className="w-full sm:w-auto"
                                       >
-                                        Generate New Theory Question
+                                        <span className="hidden sm:inline">Generate New Theory Question</span>
+                                        <span className="sm:hidden">New Theory Question</span>
                                       </Button>
                                     </div>
                                   </div>
@@ -1113,9 +1216,14 @@ export default function TopicDetailPage() {
                       {
                         key: 'practice-exercise',
                         label: (
-                          <span>
-                            🎯 Practice Exercise
-                          </span>
+                          <Tooltip 
+                            title={!selectedKnowledgeForTree.theory ? "Generate theory content to continue" : ""}
+                            placement="top"
+                          >
+                            <span>
+                              🎯 Practice Exercise
+                            </span>
+                          </Tooltip>
                         ),
                         children: (
                           <div>
@@ -1227,8 +1335,14 @@ export default function TopicDetailPage() {
                                       pageSize={practicePageSize}
                                       showSizeChanger
                                       showQuickJumper
-                                      showTotal={(total, range) => `${range[0]}-${range[1]} of ${total} questions`}
+                                      showTotal={(total, range) => (
+                                        <span className="hidden sm:inline">
+                                          {`${range[0]}-${range[1]} of ${total} questions`}
+                                        </span>
+                                      )}
                                       pageSizeOptions={['2', '4', '6', '8', '10']}
+                                      size="small"
+                                      simple={false}
                                       onChange={(page, size) => {
                                         setPracticeCurrentPage(page)
                                         if (size !== practicePageSize) {
@@ -1267,8 +1381,10 @@ export default function TopicDetailPage() {
                                   icon={<FileTextOutlined />}
                                   onClick={handleGeneratePracticeQuestion}
                                   loading={isGeneratingPracticeQuestion}
+                                  className="w-full sm:w-auto"
                                 >
-                                  Generate Practice Exercise
+                                  <span className="hidden sm:inline">Generate Practice Exercise</span>
+                                  <span className="sm:hidden">Generate Practice</span>
                                 </Button>
                               </div>
                             )}
@@ -1324,6 +1440,7 @@ export default function TopicDetailPage() {
                                     onClick={handleSubmitPracticeAnswer}
                                     loading={isSubmittingPracticeAnswer}
                                     disabled={!practiceAnswer.trim() || submittedPracticeResult !== null}
+                                    className="w-full sm:w-auto"
                                   >
                                     {submittedPracticeResult ? 'Answer Submitted' : 'Submit Answer'}
                                   </Button>
@@ -1362,8 +1479,10 @@ export default function TopicDetailPage() {
                                         icon={<FileTextOutlined />}
                                         onClick={handleResetPracticeQuestion}
                                         size="large"
+                                        className="w-full sm:w-auto"
                                       >
-                                        Generate New Practice Question
+                                        <span className="hidden sm:inline">Generate New Practice Question</span>
+                                        <span className="sm:hidden">New Practice Question</span>
                                       </Button>
                                     </div>
                                   </div>

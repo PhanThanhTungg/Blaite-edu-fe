@@ -12,6 +12,8 @@ import StatsCard from "@/components/ui/StatsCard";
 import CreateClassModal from "@/components/features/class/CreateClassModal";
 import EditClassModal from "@/components/features/class/EditClassModal";
 import DeleteClassModal from "@/components/features/class/DeleteClassModal";
+import WelcomeModal from "@/components/ui/WelcomeModal";
+import { useWelcomeModal } from "@/hooks/useWelcomeModal";
 import { PageContainer } from "@ant-design/pro-components";
 import { Spin, Alert, Button, Card, Typography, Row, Col, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
@@ -23,6 +25,7 @@ const { Text, Title } = Typography;
 export default function DashboardPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { showWelcomeModal, handleCloseWelcomeModal } = useWelcomeModal();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -171,6 +174,10 @@ export default function DashboardPage() {
 
   return (
     <ClientOnly>
+      <WelcomeModal 
+        open={showWelcomeModal} 
+        onClose={handleCloseWelcomeModal} 
+      />
       <PageContainer title="Dashboard" style={{ marginBottom: '48px' }}>
         <Space direction="vertical" size="large" style={{ width: "100%" }}>
           {/* Stats Cards */}

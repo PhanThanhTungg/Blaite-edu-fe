@@ -3,6 +3,7 @@
 import { BetaSchemaForm, ProFormColumnsType } from '@ant-design/pro-components';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { App } from 'antd';
+import { PlusOutlined, EditOutlined } from '@ant-design/icons';
 import api from '@/services/axios-customize.service';
 import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
@@ -65,8 +66,6 @@ export default function TopicForm({
       console.error('Error updating topic:', error);
     },
   });
-
-  const isPending = updateTopicMutation.isPending;
 
   const columns : ProFormColumnsType<TopicFormValues, "text">[] = [
     {
@@ -135,6 +134,8 @@ export default function TopicForm({
     }
   });
 
+  const isPending = mode === 'create' ? createTopicMutation.isPending : updateTopicMutation.isPending;
+
   const handleSubmit = async (values: TopicFormValues) => {
     console.log('🔍 Form values:', values);
     console.log('🔍 Description value:', values.description);
@@ -161,12 +162,15 @@ export default function TopicForm({
       
       submitter={{
         searchConfig: {
-          submitText: mode === 'create' ? 'Create Topic' : 'Update Topic',
+          submitText: isPending 
+            ? (mode === 'create' ? 'Creating...' : 'Updating...') 
+            : (mode === 'create' ? 'Create Topic' : 'Update Topic'),
           resetText: 'Cancel',
         },
         submitButtonProps: {
           loading: isPending,
           disabled: isPending,
+          icon: isPending ? undefined : (mode === 'create' ? <PlusOutlined /> : <EditOutlined />),
         },
         resetButtonProps: {
           disabled: isPending,
