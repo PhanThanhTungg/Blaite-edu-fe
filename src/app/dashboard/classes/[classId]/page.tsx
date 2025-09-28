@@ -17,6 +17,7 @@ import TopicCard from "@/components/features/topic/TopicCard";
 import CreateTopicModal from "@/components/features/topic/CreateTopicModal";
 import EditTopicModal from "@/components/features/topic/EditTopicModal";
 import DeleteTopicModal from "@/components/features/topic/DeleteTopicModal";
+import ErrorModal from "@/components/ui/ErrorModal";
 import ClientOnly from '@/components/ui/ClientOnly';
 
 const { Text, Title } = Typography;
@@ -31,6 +32,8 @@ export default function ClassDetailPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<any>(null);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Status update mutation with optimistic updates
   const statusUpdateMutation = useMutation({
@@ -64,6 +67,7 @@ export default function ClassDetailPage() {
       const errorMessage = getContextualErrorMessage(err, 'updating topic status');
       message.error(errorMessage);
       console.error('Error updating topic status:', err);
+      showErrorModal(err, 'Failed to update topic status');
     },
     onSettled: () => {
       // Always refetch after error or success
@@ -85,6 +89,8 @@ export default function ClassDetailPage() {
       });
       // Refresh topics list
       queryClient.invalidateQueries({ queryKey: ['topics', classId] });
+      // Refresh class summary to update totalTopic count
+      queryClient.invalidateQueries({ queryKey: ['class', classId] });
       queryClient.invalidateQueries({ queryKey: ['classes'] });
     },
     onError: (error: any) => {
@@ -94,6 +100,7 @@ export default function ClassDetailPage() {
         content: errorMessage, 
         key: 'genTopic' 
       });
+      showErrorModal(error, 'Failed to generate topics with AI');
     },
   });
 
@@ -105,6 +112,13 @@ export default function ClassDetailPage() {
   // Handle gen topic by AI
   const handleGenTopicByAI = () => {
     genTopicMutation.mutate();
+  };
+
+  // Helper function to show error modal
+  const showErrorModal = (error: any, defaultMessage: string) => {
+    const errorMessage = error.response?.data?.message || error.message || defaultMessage;
+    setErrorMessage(errorMessage);
+    setErrorModalOpen(true);
   };
 
   // Fetch class data
@@ -378,6 +392,13 @@ export default function ClassDetailPage() {
           setDeleteModalOpen(false);
           setSelectedTopic(null);
         }}
+      />
+
+      {/* Error Modal */}
+      <ErrorModal
+        open={errorModalOpen}
+        message={errorMessage}
+        onClose={() => setErrorModalOpen(false)}
       />
     </ClientOnly>
   );

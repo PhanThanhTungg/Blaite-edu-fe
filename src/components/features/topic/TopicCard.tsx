@@ -11,6 +11,7 @@ import {
   Menu,
   Switch,
   Divider,
+  theme,
 } from "antd";
 import {
   EyeOutlined,
@@ -53,6 +54,7 @@ export default function TopicCard({
   className = "",
 }: TopicCardProps) {
   const queryClient = useQueryClient();
+  const { token } = theme.useToken();
 
   // Prefetch data on hover
   const handleMouseEnter = () => {
@@ -103,14 +105,47 @@ export default function TopicCard({
         />
       }
     >
-      {/* Main metrics and additional information in body, using single column Descriptions */}
+      {/* Prompt section */}
+      {topic.prompt && (
+        <div style={{ 
+          marginBottom: 12, 
+          padding: '8px 12px', 
+          backgroundColor: token.colorFillTertiary, 
+          borderRadius: 6, 
+          border: `1px solid ${token.colorBorderSecondary}` 
+        }}>
+          <Text type="secondary" style={{ fontSize: 12, fontWeight: 500, display: 'block', marginBottom: 4 }}>
+            Prompt:
+          </Text>
+          <Tooltip title={topic.prompt} placement="topLeft" overlayStyle={{ maxWidth: 400 }}>
+            <div 
+              style={{ 
+                fontSize: 13, 
+                lineHeight: 1.4, 
+                color: token.colorText,
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 6,
+                WebkitBoxOrient: 'vertical',
+                wordBreak: 'break-word',
+                maxHeight: 'calc(1.4em * 6)', // 6 dòng với line-height 1.4
+                cursor: 'pointer'
+              }}
+            >
+              {topic.prompt}
+            </div>
+          </Tooltip>
+        </div>
+      )}
+
+      {/* Main metrics and additional information in body, using two column Descriptions */}
       <Descriptions
-        column={1}
+        column={2}
         size="middle"
         style={{ marginBottom: 12, marginTop: 4 }}
         styles={{
-          label: { fontWeight: 500, color: "#888" },
-          content: { fontWeight: 600, fontSize: 16, textAlign: "right" }
+          label: { fontWeight: 500, color: "#888", whiteSpace: 'nowrap' },
+          content: { fontWeight: 600, fontSize: 16, textAlign: "right", whiteSpace: 'nowrap' }
         }}
       >
         <Descriptions.Item label="Knowledge">
@@ -146,7 +181,7 @@ export default function TopicCard({
 
       <div
         style={{
-          borderTop: "1px solid #f0f0f0",
+          borderTop: `1px solid ${token.colorBorderSecondary}`,
           marginTop: 12,
           paddingTop: 8,
           display: "flex",

@@ -96,7 +96,7 @@ export default function EditClassModal({ open, class: classItem, onCancel, onSuc
         >
           <Input.TextArea
             placeholder="Enter class description (optional)"
-            rows={3}
+            rows={8}
             maxLength={1000}
             showCount
           />

@@ -89,8 +89,8 @@ export default function TopicForm({
       valueType: 'textarea',
       fieldProps: {
         placeholder: 'Enter your learning goal and preferences for this topic (optional)',
-        rows: 3,
-        maxLength: 500,
+        rows: 7,
+        maxLength: 1000,
         showCount: true,
       },
     },
