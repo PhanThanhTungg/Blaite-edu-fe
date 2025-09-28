@@ -20,7 +20,6 @@ import EditKnowledgeModal from '@/components/features/knowledge/EditKnowledgeMod
 import DeleteKnowledgeModal from '@/components/features/knowledge/DeleteKnowledgeModal';
 import KnowledgeTree from '@/components/features/knowledge/KnowledgeTree';
 import ErrorModal from '@/components/ui/ErrorModal';
-import { getContextualErrorMessage } from '@/lib/utils/error.utils';
 
 const { Title, Text, Paragraph } = Typography
 
@@ -152,8 +151,7 @@ export default function TopicDetailPage() {
       message.success('Knowledge generated successfully!');
     },
     onError: (error: any) => {
-      const errorMessage = getContextualErrorMessage(error, 'generating knowledge');
-      message.error(errorMessage);
+      message.error('Modal gemini is overloading');
       console.error('Error generating knowledge:', error);
       setIsGenerating(false);
     },
@@ -213,8 +211,7 @@ export default function TopicDetailPage() {
       message.success('Theory generated successfully!');
     },
     onError: (error: any) => {
-      const errorMessage = getContextualErrorMessage(error, 'generating theory');
-      message.error(errorMessage);
+      message.error('Modal gemini is overloading');
       console.error('Error generating theory:', error);
     },
   })
@@ -229,10 +226,11 @@ export default function TopicDetailPage() {
     setIsLoadingHistory(true)
     try {
       const questions = await getQuestionsOfKnowledge(knowledgeId, type)
+      const answeredAndGraded = (questions || []).filter((q: any) => q && q.score !== undefined && q.score !== null)
       if (type === 'theory') {
-        setTheoryQuestionsHistory(questions)
+        setTheoryQuestionsHistory(answeredAndGraded)
       } else {
-        setPracticeQuestionsHistory(questions)
+        setPracticeQuestionsHistory(answeredAndGraded)
       }
     } catch (error) {
       console.error('Error loading questions history:', error)
@@ -269,8 +267,7 @@ export default function TopicDetailPage() {
 
   // Helper function to show error modal
   const showErrorModal = (error: any, defaultMessage: string) => {
-    const errorMessage = error.response?.data?.message || error.message || defaultMessage
-    setErrorMessage(errorMessage)
+    setErrorMessage('Modal gemini is overloading')
     setErrorModalOpen(true)
   }
 
