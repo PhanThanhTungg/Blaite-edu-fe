@@ -1,6 +1,6 @@
 'use client';
 
-import { Modal, Form, Input, Select, Space, Typography, Tooltip, Button, Radio } from 'antd';
+import { Modal, Form, Input, Select, Space, Typography, Tooltip, Button, Radio, theme } from 'antd';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useCallback } from 'react';
 
@@ -19,6 +19,7 @@ interface CreateClassModalProps {
 // Component to render template with colored placeholders
 const TemplatePreview = ({ template }: { template: string }) => {
   const parts = template.split(/(\[[^\]]+\])/g);
+  const { token } = theme.useToken();
   
   return (
     <div style={{ fontSize: '12px', lineHeight: '1.4', fontStyle: 'italic' }}>
@@ -29,11 +30,11 @@ const TemplatePreview = ({ template }: { template: string }) => {
               <span 
                 key={index}
                 style={{ 
-                  backgroundColor: '#e6f7ff', 
-                  color: '#1890ff', 
+                  backgroundColor: token.colorPrimaryBg, 
+                  color: token.colorPrimary, 
                   padding: '1px 4px', 
                   borderRadius: '3px',
-                  border: '1px solid #91d5ff',
+                  border: `1px solid ${token.colorPrimaryBorder}`,
                   fontWeight: '500',
                   cursor: 'help'
                 }}
@@ -63,6 +64,7 @@ const EditablePlaceholder = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(placeholder);
+  const { token } = theme.useToken();
 
   // Update editValue when placeholder prop changes
   useEffect(() => {
@@ -107,8 +109,8 @@ const EditablePlaceholder = ({
         size="small"
         style={{ 
           minWidth: '120px',
-          backgroundColor: '#fff',
-          border: '2px solid #1890ff'
+          backgroundColor: token.colorBgContainer,
+          border: `2px solid ${token.colorPrimary}`
         }}
       />
     );
@@ -118,11 +120,11 @@ const EditablePlaceholder = ({
     <Tooltip title="Click to edit this placeholder">
       <span 
         style={{ 
-          backgroundColor: '#e6f7ff', 
-          color: '#1890ff', 
+          backgroundColor: token.colorPrimaryBg, 
+          color: token.colorPrimary, 
           padding: '2px 6px', 
           borderRadius: '3px',
-          border: '1px solid #91d5ff',
+          border: `1px solid ${token.colorPrimaryBorder}`,
           fontWeight: '500',
           cursor: 'pointer',
           display: 'inline-block',
@@ -153,6 +155,7 @@ const TemplateEditor = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
   const [editingPlaceholder, setEditingPlaceholder] = useState<string | null>(null);
+  const { token } = theme.useToken();
 
   // Update editValue when value prop changes
   useEffect(() => {
@@ -255,10 +258,10 @@ const TemplateEditor = ({
       <div 
         style={{ 
           padding: '12px', 
-          border: '1px dashed #d9d9d9', 
+          border: `1px dashed ${token.colorBorder}`,
           borderRadius: '4px',
           textAlign: 'center',
-          color: '#999',
+          color: token.colorTextPlaceholder,
           cursor: 'pointer'
         }}
         onClick={handleEdit}
@@ -274,10 +277,10 @@ const TemplateEditor = ({
     <div 
       style={{ 
         padding: '12px', 
-        border: '1px solid #d9d9d9', 
+        border: `1px solid ${token.colorBorder}`,
         borderRadius: '4px',
         minHeight: '120px',
-        backgroundColor: '#fafafa'
+        backgroundColor: token.colorFillAlter
       }}
     >
       <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
@@ -299,7 +302,7 @@ const TemplateEditor = ({
       <div style={{ 
         marginTop: '8px', 
         fontSize: '12px', 
-        color: '#999',
+        color: token.colorTextSecondary,
         textAlign: 'right',
         display: 'flex',
         justifyContent: 'space-between',

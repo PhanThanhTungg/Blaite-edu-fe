@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, Button, Space, Typography, Progress, Switch, Tag } from 'antd';
+import { Card, Button, Space, Typography, Progress, Switch, Tag, Tooltip, theme } from 'antd';
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useState, useRef, useEffect } from 'react';
 
@@ -10,6 +10,7 @@ const { Text, Title } = Typography;
 const TruncatedText = ({ text, maxLines = 3 }: { text: string; maxLines?: number }) => {
   const [isOverflowing, setIsOverflowing] = useState(false);
   const textRef = useRef<HTMLDivElement>(null);
+  const { token } = theme.useToken();
 
   useEffect(() => {
     if (textRef.current) {
@@ -18,13 +19,13 @@ const TruncatedText = ({ text, maxLines = 3 }: { text: string; maxLines?: number
     }
   }, [text]);
 
-  return (
+  const content = (
     <div style={{ position: 'relative' }}>
       <div
         ref={textRef}
         style={{
           fontSize: '14px',
-          color: '#8c8c8c',
+          color: token.colorTextSecondary,
           display: '-webkit-box',
           WebkitLineClamp: maxLines,
           WebkitBoxOrient: 'vertical',
@@ -41,9 +42,9 @@ const TruncatedText = ({ text, maxLines = 3 }: { text: string; maxLines?: number
             position: 'absolute',
             right: 0,
             bottom: 0,
-            background: 'linear-gradient(to right, transparent, white 50%)',
+            background: `linear-gradient(to right, transparent, ${token.colorBgContainer} 50%)`,
             paddingLeft: '20px',
-            color: '#8c8c8c',
+            color: token.colorTextSecondary,
             fontSize: '14px',
           }}
         >
@@ -52,6 +53,25 @@ const TruncatedText = ({ text, maxLines = 3 }: { text: string; maxLines?: number
       )}
     </div>
   );
+
+  // Only show tooltip if text is overflowing
+  if (isOverflowing) {
+    return (
+      <Tooltip 
+        title={text} 
+        placement="topLeft"
+        overlayStyle={{ maxWidth: '300px' }}
+        overlayInnerStyle={{ 
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word'
+        }}
+      >
+        {content}
+      </Tooltip>
+    );
+  }
+
+  return content;
 };
 
 interface ClassCardProps {

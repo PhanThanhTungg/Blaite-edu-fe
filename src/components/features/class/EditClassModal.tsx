@@ -91,13 +91,13 @@ export default function EditClassModal({ open, class: classItem, onCancel, onSuc
           name="description"
           label="Description"
           rules={[
-            { max: 500, message: 'Description cannot exceed 500 characters' }
+            { max: 1000, message: 'Description cannot exceed 1000 characters' }
           ]}
         >
           <Input.TextArea
             placeholder="Enter class description (optional)"
             rows={3}
-            maxLength={500}
+            maxLength={1000}
             showCount
           />
         </Form.Item>
